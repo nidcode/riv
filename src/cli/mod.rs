@@ -11,6 +11,7 @@ use crate::error::Result;
 use clap::{Parser, Subcommand};
 
 pub const DEFAULT_EVENT: &str = "reinvent2026";
+pub use plan_cmds::DEFAULT_SPEC;
 
 #[derive(Parser, Debug)]
 #[command(name = "riv", version, about = "re:Invent as Code: declare your agenda, plan, apply.")]
@@ -127,6 +128,8 @@ pub enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Start the local MCP server on stdio (for Kiro / Claude / Crew).
+    Mcp,
     /// Run the mock Events API server (synthetic data).
     Mock {
         #[arg(long, default_value_t = 8787)]
@@ -168,6 +171,7 @@ pub async fn run(cli: Cli) -> Result<i32> {
         }
         Command::Verify { spec, json } => apply_cmds::run_verify(spec, json).await,
         Command::Schedule { event, json } => apply_cmds::run_schedule(&event, json).await,
+        Command::Mcp => crate::mcp::serve_stdio().await.map(|()| 0),
         Command::Mock { port, scenario } => mock_cmd::run(port, scenario).await,
     }
 }

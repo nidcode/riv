@@ -16,7 +16,9 @@ futures-core = "0.3.34"
 hex = "0.4.3"
 rand = "0.10.3"
 reqwest = { version = "0.13.5", default-features = false, features = ["rustls", "json", "query", "form"] }
+rmcp = { version = "3.5.0", features = ["server", "transport-io", "macros", "client"] }
 rusqlite = { version = "0.40.2", features = ["bundled"] }
+schemars = "1.2.2"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 serde_yaml_ng = "0.10.0"

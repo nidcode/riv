@@ -12,6 +12,7 @@ pub mod error;
 pub mod format;
 pub mod i18n;
 pub mod ids;
+pub mod mcp;
 pub mod mock;
 pub mod paths;
 pub mod plan;

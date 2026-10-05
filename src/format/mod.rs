@@ -58,6 +58,35 @@ pub fn valid_field(f: &str) -> bool {
     ["id", "code", "title", "start", "venue", "room", "level", "type", "seat"].contains(&f)
 }
 
+/// Render sessions for an MCP reply: a Markdown table for `ide`, compact lines (no table) for `phone`.
+pub fn render_sessions(sessions: &[&Session], fields: &[&str], tz: Tz, format: Format) -> String {
+    match format {
+        Format::Ide => {
+            let mut out = format!("| {} |\n|{}|\n", fields.join(" | "), vec!["---"; fields.len()].join("|"));
+            for s in sessions {
+                let cells: Vec<String> = fields.iter().map(|f| field(s, f, tz).replace('|', "\\|")).collect();
+                out.push_str(&format!("| {} |\n", cells.join(" | ")));
+            }
+            out
+        }
+        Format::Phone => sessions.iter().take(12).map(|s| format!("{}\n", line(s, fields, tz))).collect(),
+    }
+}
+
+/// Keep a tool reply within roughly 8 KB.
+pub fn cap_reply(mut s: String) -> String {
+    const MAX: usize = 8 * 1024;
+    if s.len() > MAX {
+        let mut cut = MAX;
+        while !s.is_char_boundary(cut) {
+            cut -= 1;
+        }
+        s.truncate(cut);
+        s.push_str("\n… (truncated; narrow the request)\n");
+    }
+    s
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
