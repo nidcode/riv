@@ -96,3 +96,23 @@ pub fn provider_from_env() -> std::sync::Arc<dyn TokenProvider> {
     }
     std::sync::Arc::new(StoredTokens::new(FileTokenStore::default_location()))
 }
+
+/// Stable, non-reversible account id for plans: sha256 of the id token's `sub` (or of the static token's `sub`).
+pub fn account_id() -> String {
+    use sha2::{Digest, Sha256};
+    let sub = std::env::var("RIV_TOKEN")
+        .ok()
+        .filter(|t| !t.is_empty())
+        .map(|t| jwt::claim_str(&t, "sub").unwrap_or_else(|| "static-token".into()))
+        .or_else(|| {
+            let c = FileTokenStore::default_location().load().ok().flatten()?;
+            c.id_token
+                .as_deref()
+                .and_then(|t| jwt::claim_str(t, "sub"))
+                .or_else(|| jwt::claim_str(&c.access_token, "sub"))
+        });
+    match sub {
+        Some(s) => format!("sha256:{}", hex::encode(Sha256::digest(s.as_bytes()))),
+        None => "anonymous".into(),
+    }
+}

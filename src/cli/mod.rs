@@ -4,6 +4,7 @@ mod auth_cmds;
 mod catalog_cmds;
 pub mod ctx;
 mod mock_cmd;
+mod plan_cmds;
 
 use crate::error::Result;
 use clap::{Parser, Subcommand};
@@ -77,6 +78,24 @@ pub enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Create requirements.md / design.md / tasks.md for this agenda (3 questions).
+    Init {
+        #[arg(default_value = ".")]
+        dir: std::path::PathBuf,
+        #[arg(long)]
+        goal: Option<String>,
+        #[arg(long)]
+        interests: Option<String>,
+        #[arg(long)]
+        constraints: Option<String>,
+    },
+    /// Diff the spec against your real schedule. Never writes to the API.
+    Plan {
+        #[arg(long)]
+        spec: Option<std::path::PathBuf>,
+        #[arg(long)]
+        json: bool,
+    },
     /// Run the mock Events API server (synthetic data).
     Mock {
         #[arg(long, default_value_t = 8787)]
@@ -111,6 +130,8 @@ pub async fn run(cli: Cli) -> Result<i32> {
             .await
         }
         Command::Show { id, event, json } => catalog_cmds::show(&event, &id, json),
+        Command::Init { dir, goal, interests, constraints } => plan_cmds::init(dir, goal, interests, constraints),
+        Command::Plan { spec, json } => plan_cmds::plan(spec, json).await,
         Command::Mock { port, scenario } => mock_cmd::run(port, scenario).await,
     }
 }

@@ -2,6 +2,7 @@
 
 mod build;
 mod render;
+pub mod service;
 
 pub use build::{PlanInput, build_plan, make_plan};
 pub use render::render_plan;
