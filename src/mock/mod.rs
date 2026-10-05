@@ -1,4 +1,6 @@
 //! In-process mock of the AWS Events API (axum). Synthetic data only.
+// Handlers return `Err(Response)` early; boxing it would only add noise in test-support code.
+#![allow(clippy::result_large_err)]
 
 pub mod catalog;
 
@@ -127,6 +129,8 @@ impl Drop for MockServer {
 
 pub fn router(state: Shared) -> Router {
     Router::new()
+        .route("/oauth2/token", post(oauth_token))
+        .route("/oauth2/revoke", post(|| async { StatusCode::OK }))
         .route("/v1/events", get(list_events))
         .route("/v1/events/{eid}", get(get_event))
         .route("/v1/events/{eid}/sessions", get(list_sessions))
@@ -159,7 +163,10 @@ fn events() -> Vec<Event> {
 }
 
 fn json_err(status: u16, msg: &str) -> Response {
-    (StatusCode::from_u16(status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR), Json(serde_json::json!({ "message": msg })))
+    (
+        StatusCode::from_u16(status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+        Json(serde_json::json!({ "message": msg })),
+    )
         .into_response()
 }
 
@@ -240,7 +247,10 @@ fn broken_response() -> Response {
     struct Broken(bool);
     impl futures_core::Stream for Broken {
         type Item = Result<Vec<u8>, std::io::Error>;
-        fn poll_next(mut self: std::pin::Pin<&mut Self>, _: &mut std::task::Context<'_>) -> std::task::Poll<Option<Self::Item>> {
+        fn poll_next(
+            mut self: std::pin::Pin<&mut Self>,
+            _: &mut std::task::Context<'_>,
+        ) -> std::task::Poll<Option<Self::Item>> {
             if self.0 {
                 return std::task::Poll::Ready(None);
             }
@@ -360,7 +370,12 @@ fn ok_bulk(result: BulkResult) -> Response {
     Json(BulkResponse { result }).into_response()
 }
 
-async fn reserve(State(st): State<Shared>, Path(eid): Path<String>, h: HeaderMap, Json(req): Json<SessionIdsRequest>) -> Response {
+async fn reserve(
+    State(st): State<Shared>,
+    Path(eid): Path<String>,
+    h: HeaderMap,
+    Json(req): Json<SessionIdsRequest>,
+) -> Response {
     let sc = match gate(&st, &eid, &h, Kind::Reservation, false) {
         Ok(sc) => sc,
         Err(r) => return r,
@@ -431,7 +446,12 @@ async fn cancel(State(st): State<Shared>, Path((eid, sid)): Path<(String, String
     })
 }
 
-async fn favorite(State(st): State<Shared>, Path(eid): Path<String>, h: HeaderMap, Json(req): Json<SessionIdsRequest>) -> Response {
+async fn favorite(
+    State(st): State<Shared>,
+    Path(eid): Path<String>,
+    h: HeaderMap,
+    Json(req): Json<SessionIdsRequest>,
+) -> Response {
     if let Err(r) = gate(&st, &eid, &h, Kind::Write, false) {
         return r;
     }
@@ -443,9 +463,17 @@ async fn favorite(State(st): State<Shared>, Path(eid): Path<String>, h: HeaderMa
         let mut sched = lock(&st.schedule);
         for id in &req.session_ids {
             if !st.sessions.iter().any(|s| &s.session_id == id) {
-                result.failed.push(BulkFailure { session_id: id.clone(), code: BulkFailureCode::Other, conflicts_with: None });
+                result.failed.push(BulkFailure {
+                    session_id: id.clone(),
+                    code: BulkFailureCode::Other,
+                    conflicts_with: None,
+                });
             } else if sched.favorites.contains(id) {
-                result.failed.push(BulkFailure { session_id: id.clone(), code: BulkFailureCode::AlreadyFavorited, conflicts_with: None });
+                result.failed.push(BulkFailure {
+                    session_id: id.clone(),
+                    code: BulkFailureCode::AlreadyFavorited,
+                    conflicts_with: None,
+                });
             } else {
                 sched.favorites.push(id.clone());
                 result.successful.push(id.clone());
@@ -487,7 +515,12 @@ fn validate_pt(i: &PersonalTimeInput) -> Result<(), Response> {
 }
 
 /// Personal time lives in the mock's own list (kept in the write log + schedule).
-async fn pt_create(State(st): State<Shared>, Path(eid): Path<String>, h: HeaderMap, Json(i): Json<PersonalTimeInput>) -> Response {
+async fn pt_create(
+    State(st): State<Shared>,
+    Path(eid): Path<String>,
+    h: HeaderMap,
+    Json(i): Json<PersonalTimeInput>,
+) -> Response {
     if let Err(r) = gate(&st, &eid, &h, Kind::Write, false) {
         return r;
     }
@@ -508,7 +541,12 @@ async fn pt_create(State(st): State<Shared>, Path(eid): Path<String>, h: HeaderM
     })
 }
 
-async fn pt_update(State(st): State<Shared>, Path((eid, id)): Path<(String, String)>, h: HeaderMap, Json(i): Json<PersonalTimeInput>) -> Response {
+async fn pt_update(
+    State(st): State<Shared>,
+    Path((eid, id)): Path<(String, String)>,
+    h: HeaderMap,
+    Json(i): Json<PersonalTimeInput>,
+) -> Response {
     if let Err(r) = gate(&st, &eid, &h, Kind::Write, false) {
         return r;
     }
@@ -542,6 +580,22 @@ async fn pt_delete(State(st): State<Shared>, Path((eid, id)): Path<(String, Stri
         let mut sched = lock(&st.schedule);
         let before = sched.personal_time.len();
         sched.personal_time.retain(|p| p.personal_time_id != id);
-        if sched.personal_time.len() < before { StatusCode::NO_CONTENT.into_response() } else { json_err(404, "no such personal time") }
+        if sched.personal_time.len() < before {
+            StatusCode::NO_CONTENT.into_response()
+        } else {
+            json_err(404, "no such personal time")
+        }
     })
+}
+
+/// Minimal token endpoint so refresh can be tested: `mock-refresh` -> a fresh `mock-token`.
+async fn oauth_token(axum::Form(f): axum::Form<HashMap<String, String>>) -> Response {
+    if f.get("grant_type").map(String::as_str) == Some("refresh_token")
+        && f.get("refresh_token").map(String::as_str) == Some("mock-refresh")
+    {
+        Json(serde_json::json!({"access_token": MOCK_TOKEN, "refresh_token": "mock-refresh-2", "expires_in": 3600}))
+            .into_response()
+    } else {
+        json_err(400, "invalid_grant")
+    }
 }

@@ -17,7 +17,10 @@ fn props(name: &str) -> BTreeSet<String> {
 }
 
 fn required(name: &str) -> BTreeSet<String> {
-    schema(name)["required"].as_array().map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect()).unwrap_or_default()
+    schema(name)["required"]
+        .as_array()
+        .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+        .unwrap_or_default()
 }
 
 fn keys(v: &impl serde::Serialize) -> BTreeSet<String> {
@@ -33,7 +36,8 @@ fn operations_match_openapi() {
         assert_eq!(item["operationId"], op.id, "{} {}", op.method, op.template);
         n += 1;
     }
-    let total: usize = s["paths"].as_object().expect("paths").values().map(|m| m.as_object().map_or(0, |o| o.len())).sum();
+    let total: usize =
+        s["paths"].as_object().expect("paths").values().map(|m| m.as_object().map_or(0, |o| o.len())).sum();
     assert_eq!((n, total), (12, 12), "operation count drifted");
 }
 
@@ -93,8 +97,22 @@ fn required_fields_are_always_serialized() {
 #[test]
 fn enums_are_fully_known() {
     for (name, check) in [
-        ("BulkFailureCode", Box::new(|v: &str| serde_json::from_value::<BulkFailureCode>(Value::String(v.into())).map(|c| c != BulkFailureCode::Other).unwrap_or(false)) as Box<dyn Fn(&str) -> bool>),
-        ("SeatAvailability", Box::new(|v: &str| serde_json::from_value::<SeatAvailability>(Value::String(v.into())).map(|c| c != SeatAvailability::Other).unwrap_or(false))),
+        (
+            "BulkFailureCode",
+            Box::new(|v: &str| {
+                serde_json::from_value::<BulkFailureCode>(Value::String(v.into()))
+                    .map(|c| c != BulkFailureCode::Other)
+                    .unwrap_or(false)
+            }) as Box<dyn Fn(&str) -> bool>,
+        ),
+        (
+            "SeatAvailability",
+            Box::new(|v: &str| {
+                serde_json::from_value::<SeatAvailability>(Value::String(v.into()))
+                    .map(|c| c != SeatAvailability::Other)
+                    .unwrap_or(false)
+            }),
+        ),
     ] {
         for v in schema(name)["enum"].as_array().expect("enum") {
             let v = v.as_str().expect("string enum");

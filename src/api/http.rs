@@ -21,6 +21,35 @@ pub struct HttpApi {
 
 use quota::Quota;
 
+/// One request: which operation, its quota cost, URL arguments, query, body, and whether it is a write
+/// (a failed write has an unknown outcome).
+struct Call<'a> {
+    op: Op,
+    units: u32,
+    spec: &'a ops::OpSpec,
+    args: &'a [&'a str],
+    query: &'a [(&'a str, String)],
+    body: Option<serde_json::Value>,
+    write: bool,
+}
+
+impl<'a> Call<'a> {
+    fn read(op: Op, units: u32, spec: &'a ops::OpSpec, args: &'a [&'a str]) -> Self {
+        Self { op, units, spec, args, query: &[], body: None, write: false }
+    }
+    fn write(op: Op, units: u32, spec: &'a ops::OpSpec, args: &'a [&'a str]) -> Self {
+        Self { write: true, ..Self::read(op, units, spec, args) }
+    }
+    fn query(mut self, q: &'a [(&'a str, String)]) -> Self {
+        self.query = q;
+        self
+    }
+    fn body(mut self, b: serde_json::Value) -> Self {
+        self.body = Some(b);
+        self
+    }
+}
+
 struct Reply {
     content_language: Option<String>,
     body: Vec<u8>,
@@ -33,7 +62,13 @@ impl HttpApi {
             .user_agent(concat!("riv/", env!("CARGO_PKG_VERSION")))
             .build()
             .expect("reqwest client builds with default TLS config");
-        Self { base: base.into().trim_end_matches('/').to_string(), client, tokens, quota: Quota::new(), sleep_scale: 1.0 }
+        Self {
+            base: base.into().trim_end_matches('/').to_string(),
+            client,
+            tokens,
+            quota: Quota::new(),
+            sleep_scale: 1.0,
+        }
     }
 
     pub fn with_sleep_scale(mut self, scale: f64) -> Self {
@@ -50,16 +85,8 @@ impl HttpApi {
 
     /// Send one request with policy: refresh once on 401, honor 429 Retry-After, retry reads on 5xx.
     /// `units` is the quota cost; `write` marks requests whose outcome is unknown on failure.
-    async fn send(
-        &self,
-        op: Op,
-        units: u32,
-        spec: &ops::OpSpec,
-        args: &[&str],
-        query: &[(&str, String)],
-        body: Option<serde_json::Value>,
-        write: bool,
-    ) -> ApiResult<Reply> {
+    async fn send(&self, call: Call<'_>) -> ApiResult<Reply> {
+        let Call { op, units, spec, args, query, body, write } = call;
         let url = format!("{}{}", self.base, spec.path(args));
         let method = Method::from_bytes(spec.method.as_bytes()).unwrap_or(Method::GET);
         let mut refreshed = false;
@@ -92,11 +119,8 @@ impl HttpApi {
                 .get("retry-after")
                 .and_then(|v| v.to_str().ok())
                 .and_then(|v| v.trim().parse::<u64>().ok());
-            let content_language = resp
-                .headers()
-                .get("content-language")
-                .and_then(|v| v.to_str().ok())
-                .map(str::to_string);
+            let content_language =
+                resp.headers().get("content-language").and_then(|v| v.to_str().ok()).map(str::to_string);
             let bytes = match resp.bytes().await {
                 Ok(b) => b.to_vec(),
                 Err(e) => {
@@ -165,11 +189,7 @@ fn message_of(body: &[u8]) -> String {
     {
         return m.chars().take(300).collect();
     }
-    if body.is_empty() {
-        "(no body: possibly an edge refusal)".into()
-    } else {
-        "(non-JSON body)".into()
-    }
+    if body.is_empty() { "(no body: possibly an edge refusal)".into() } else { "(non-JSON body)".into() }
 }
 
 fn strip_url(e: reqwest::Error) -> String {
@@ -179,24 +199,24 @@ fn strip_url(e: reqwest::Error) -> String {
 #[async_trait]
 impl EventsApi for HttpApi {
     async fn list_events(&self) -> ApiResult<Vec<Event>> {
-        let r = self.send(Op::GetSession, 0, &ops::LIST_EVENTS, &[], &[], None, false).await?;
+        let r = self.send(Call::read(Op::GetSession, 0, &ops::LIST_EVENTS, &[])).await?;
         Ok(self.json::<ListEventsResponse>(r).await?.items)
     }
 
     async fn get_event(&self, event_id: &str) -> ApiResult<Event> {
-        let r = self.send(Op::GetSession, 0, &ops::GET_EVENT, &[event_id], &[], None, false).await?;
+        let r = self.send(Call::read(Op::GetSession, 0, &ops::GET_EVENT, &[event_id])).await?;
         Ok(self.json::<GetEventResponse>(r).await?.event)
     }
 
     async fn list_sessions_page(&self, event_id: &str, p: &ListSessionsParams) -> ApiResult<SessionPage> {
-                let mut q: Vec<(&str, String)> = vec![("includeAbstracts", p.include_abstracts.to_string())];
+        let mut q: Vec<(&str, String)> = vec![("includeAbstracts", p.include_abstracts.to_string())];
         if let Some(l) = &p.locale {
             q.push(("locale", l.clone()));
         }
         if let Some(t) = &p.next_token {
             q.push(("nextToken", t.clone()));
         }
-        let r = self.send(Op::ListSessions, 1, &ops::LIST_SESSIONS, &[event_id], &q, None, false).await?;
+        let r = self.send(Call::read(Op::ListSessions, 1, &ops::LIST_SESSIONS, &[event_id]).query(&q)).await?;
         let lang = r.content_language.clone();
         let body: ListSessionsResponse = self.json(r).await?;
         Ok(SessionPage {
@@ -208,48 +228,60 @@ impl EventsApi for HttpApi {
     }
 
     async fn get_session(&self, event_id: &str, session_id: &str, locale: Option<&str>) -> ApiResult<Session> {
-                let q: Vec<(&str, String)> = locale.map(|l| vec![("locale", l.to_string())]).unwrap_or_default();
-        let r = self.send(Op::GetSession, 1, &ops::GET_SESSION, &[event_id, session_id], &q, None, false).await?;
+        let q: Vec<(&str, String)> = locale.map(|l| vec![("locale", l.to_string())]).unwrap_or_default();
+        let r = self.send(Call::read(Op::GetSession, 1, &ops::GET_SESSION, &[event_id, session_id]).query(&q)).await?;
         Ok(self.json::<GetSessionResponse>(r).await?.session)
     }
 
     async fn get_schedule(&self, event_id: &str) -> ApiResult<Schedule> {
-                let r = self.send(Op::GetSchedule, 1, &ops::GET_SCHEDULE, &[event_id], &[], None, false).await?;
+        let r = self.send(Call::read(Op::GetSchedule, 1, &ops::GET_SCHEDULE, &[event_id])).await?;
         Ok(self.json::<GetScheduleResponse>(r).await?.schedule)
     }
 
     async fn reserve(&self, event_id: &str, ids: &[String]) -> ApiResult<BulkResult> {
-                let body = serde_json::json!({ "sessionIds": ids });
-        let r = self.send(Op::ReserveSessions, ids.len() as u32, &ops::RESERVE_SESSIONS, &[event_id], &[], Some(body), true).await?;
+        let body = serde_json::json!({ "sessionIds": ids });
+        let args = [event_id];
+        let call = Call::write(Op::ReserveSessions, ids.len() as u32, &ops::RESERVE_SESSIONS, &args).body(body);
+        let r = self.send(call).await?;
         Ok(self.json::<BulkResponse>(r).await?.result)
     }
 
     async fn cancel_reservation(&self, event_id: &str, session_id: &str) -> ApiResult<()> {
-        self.send(Op::CancelReservation, 1, &ops::CANCEL_RESERVATION, &[event_id, session_id], &[], None, true).await.map(|_| ())
+        self.send(Call::write(Op::CancelReservation, 1, &ops::CANCEL_RESERVATION, &[event_id, session_id]))
+            .await
+            .map(|_| ())
     }
 
     async fn associate_favorites(&self, event_id: &str, ids: &[String]) -> ApiResult<BulkResult> {
-                let body = serde_json::json!({ "sessionIds": ids });
-        let r = self.send(Op::AssociateFavorites, ids.len() as u32, &ops::ASSOCIATE_FAVORITES, &[event_id], &[], Some(body), true).await?;
+        let body = serde_json::json!({ "sessionIds": ids });
+        let args = [event_id];
+        let call = Call::write(Op::AssociateFavorites, ids.len() as u32, &ops::ASSOCIATE_FAVORITES, &args).body(body);
+        let r = self.send(call).await?;
         Ok(self.json::<BulkResponse>(r).await?.result)
     }
 
     async fn disassociate_favorite(&self, event_id: &str, session_id: &str) -> ApiResult<()> {
-        self.send(Op::DisassociateFavorite, 1, &ops::DISASSOCIATE_FAVORITE, &[event_id, session_id], &[], None, true).await.map(|_| ())
+        self.send(Call::write(Op::DisassociateFavorite, 1, &ops::DISASSOCIATE_FAVORITE, &[event_id, session_id]))
+            .await
+            .map(|_| ())
     }
 
     async fn create_personal_time(&self, event_id: &str, input: &PersonalTimeInput) -> ApiResult<()> {
-                let body = serde_json::to_value(input).map_err(|e| ApiError::BadRequest(e.to_string()))?;
-        self.send(Op::CreatePersonalTime, 1, &ops::CREATE_PERSONAL_TIME, &[event_id], &[], Some(body), true).await.map(|_| ())
+        let body = serde_json::to_value(input).map_err(|e| ApiError::BadRequest(e.to_string()))?;
+        self.send(Call::write(Op::CreatePersonalTime, 1, &ops::CREATE_PERSONAL_TIME, &[event_id]).body(body))
+            .await
+            .map(|_| ())
     }
 
     async fn update_personal_time(&self, event_id: &str, id: &str, input: &PersonalTimeInput) -> ApiResult<()> {
         let body = serde_json::to_value(input).map_err(|e| ApiError::BadRequest(e.to_string()))?;
-        self.send(Op::UpdatePersonalTime, 1, &ops::UPDATE_PERSONAL_TIME, &[event_id, id], &[], Some(body), true).await.map(|_| ())
+        self.send(Call::write(Op::UpdatePersonalTime, 1, &ops::UPDATE_PERSONAL_TIME, &[event_id, id]).body(body))
+            .await
+            .map(|_| ())
     }
 
     async fn delete_personal_time(&self, event_id: &str, id: &str) -> ApiResult<()> {
-        self.send(Op::DeletePersonalTime, 1, &ops::DELETE_PERSONAL_TIME, &[event_id, id], &[], None, true).await.map(|_| ())
+        self.send(Call::write(Op::DeletePersonalTime, 1, &ops::DELETE_PERSONAL_TIME, &[event_id, id])).await.map(|_| ())
     }
 
     fn remaining(&self, op: Op) -> u32 {

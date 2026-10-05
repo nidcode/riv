@@ -38,17 +38,30 @@ pub const LIST_SESSIONS: OpSpec = op("ListSessions", "GET", "/v1/events/{eventId
 pub const GET_SESSION: OpSpec = op("GetSession", "GET", "/v1/events/{eventId}/sessions/{sessionId}");
 pub const GET_SCHEDULE: OpSpec = op("GetSchedule", "GET", "/v1/events/{eventId}/schedule");
 pub const RESERVE_SESSIONS: OpSpec = op("ReserveSessions", "POST", "/v1/events/{eventId}/reservations");
-pub const CANCEL_RESERVATION: OpSpec = op("CancelReservation", "DELETE", "/v1/events/{eventId}/reservations/{sessionId}");
+pub const CANCEL_RESERVATION: OpSpec =
+    op("CancelReservation", "DELETE", "/v1/events/{eventId}/reservations/{sessionId}");
 pub const ASSOCIATE_FAVORITES: OpSpec = op("AssociateFavorites", "POST", "/v1/events/{eventId}/favorites");
-pub const DISASSOCIATE_FAVORITE: OpSpec = op("DisassociateFavorite", "DELETE", "/v1/events/{eventId}/favorites/{sessionId}");
+pub const DISASSOCIATE_FAVORITE: OpSpec =
+    op("DisassociateFavorite", "DELETE", "/v1/events/{eventId}/favorites/{sessionId}");
 pub const CREATE_PERSONAL_TIME: OpSpec = op("CreatePersonalTime", "POST", "/v1/events/{eventId}/personal-time");
-pub const UPDATE_PERSONAL_TIME: OpSpec = op("UpdatePersonalTime", "PUT", "/v1/events/{eventId}/personal-time/{personalTimeId}");
-pub const DELETE_PERSONAL_TIME: OpSpec = op("DeletePersonalTime", "DELETE", "/v1/events/{eventId}/personal-time/{personalTimeId}");
+pub const UPDATE_PERSONAL_TIME: OpSpec =
+    op("UpdatePersonalTime", "PUT", "/v1/events/{eventId}/personal-time/{personalTimeId}");
+pub const DELETE_PERSONAL_TIME: OpSpec =
+    op("DeletePersonalTime", "DELETE", "/v1/events/{eventId}/personal-time/{personalTimeId}");
 
 pub const ALL: [&OpSpec; 12] = [
-    &LIST_EVENTS, &GET_EVENT, &LIST_SESSIONS, &GET_SESSION, &GET_SCHEDULE, &RESERVE_SESSIONS,
-    &CANCEL_RESERVATION, &ASSOCIATE_FAVORITES, &DISASSOCIATE_FAVORITE, &CREATE_PERSONAL_TIME,
-    &UPDATE_PERSONAL_TIME, &DELETE_PERSONAL_TIME,
+    &LIST_EVENTS,
+    &GET_EVENT,
+    &LIST_SESSIONS,
+    &GET_SESSION,
+    &GET_SCHEDULE,
+    &RESERVE_SESSIONS,
+    &CANCEL_RESERVATION,
+    &ASSOCIATE_FAVORITES,
+    &DISASSOCIATE_FAVORITE,
+    &CREATE_PERSONAL_TIME,
+    &UPDATE_PERSONAL_TIME,
+    &DELETE_PERSONAL_TIME,
 ];
 
 #[cfg(test)]

@@ -95,7 +95,8 @@ mod tests {
     fn saves_with_0600_and_roundtrips() {
         let dir = tempfile::tempdir().unwrap();
         let s = FileTokenStore::new(dir.path().join("sub/credentials.json"));
-        let c = Credentials { access_token: "a".into(), refresh_token: Some("r".into()), id_token: None, expires_at: 5 };
+        let c =
+            Credentials { access_token: "a".into(), refresh_token: Some("r".into()), id_token: None, expires_at: 5 };
         s.save(&c).unwrap();
         let mode = std::fs::metadata(dir.path().join("sub/credentials.json")).unwrap().permissions().mode();
         assert_eq!(mode & 0o777, 0o600);

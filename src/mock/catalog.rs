@@ -28,19 +28,37 @@ const TOPICS: &[(&str, &str)] = &[
     ("DevOps", "DOP"),
 ];
 const SERVICES: &[&str] = &[
-    "Amazon Bedrock", "AWS Lambda", "Amazon S3", "Amazon ECS", "Amazon EKS", "Amazon DynamoDB",
-    "AWS IAM", "Amazon SageMaker AI", "Amazon Aurora", "AWS CDK", "Amazon Athena", "AWS Step Functions",
+    "Amazon Bedrock",
+    "AWS Lambda",
+    "Amazon S3",
+    "Amazon ECS",
+    "Amazon EKS",
+    "Amazon DynamoDB",
+    "AWS IAM",
+    "Amazon SageMaker AI",
+    "Amazon Aurora",
+    "AWS CDK",
+    "Amazon Athena",
+    "AWS Step Functions",
 ];
-const VERBS: &[&str] = &["Building", "Scaling", "Securing", "Operating", "Debugging", "Optimizing", "Designing", "Migrating"];
+const VERBS: &[&str] =
+    &["Building", "Scaling", "Securing", "Operating", "Debugging", "Optimizing", "Designing", "Migrating"];
 const NOUNS: &[&str] = &[
-    "agentic workflows", "event-driven systems", "multi-tenant platforms", "data pipelines", "retrieval pipelines",
-    "serverless APIs", "zero-trust networks", "cost-aware architectures", "streaming ingestion", "platform teams",
+    "agentic workflows",
+    "event-driven systems",
+    "multi-tenant platforms",
+    "data pipelines",
+    "retrieval pipelines",
+    "serverless APIs",
+    "zero-trust networks",
+    "cost-aware architectures",
+    "streaming ingestion",
+    "platform teams",
 ];
 const TYPES: &[&str] = &["Breakout session", "Chalk talk", "Workshop", "Builder session", "Lightning talk"];
 const VENUES: &[&str] = &["Venetian", "Wynn", "MGM Grand", "Mandalay Bay"];
-const SPEAKERS: &[&str] = &[
-    "Alex Example", "Sam Sample", "Jordan Demo", "Casey Mock", "Riley Synthetic", "Morgan Test", "Taylor Fixture",
-];
+const SPEAKERS: &[&str] =
+    &["Alex Example", "Sam Sample", "Jordan Demo", "Casey Mock", "Riley Synthetic", "Morgan Test", "Taylor Fixture"];
 const DAYS: &[&str] = &["2026-11-30", "2026-12-01", "2026-12-02", "2026-12-03", "2026-12-04"];
 const STARTS: &[&str] = &["08:30", "10:00", "11:30", "13:00", "14:30", "16:00"];
 
@@ -64,7 +82,11 @@ pub fn generate() -> Vec<Session> {
     let mut out: Vec<Session> = Vec::new();
     let mut n = 0u32;
 
-    let mut make = |r: &mut Lcg, title: Option<(String, String, String, String)>, suffix: &str, day: usize| -> Session {
+    let mut make = |r: &mut Lcg,
+                    title: Option<(String, String, String, String)>,
+                    suffix: &str,
+                    day: usize|
+     -> Session {
         n += 1;
         let (topic, prefix) = *r.pick(TOPICS);
         let level = *r.pick(&[100u32, 200, 300, 300, 400]);
@@ -78,7 +100,13 @@ pub fn generate() -> Vec<Session> {
             )
         });
         let ty = *r.pick(TYPES);
-        let len = if ty == "Workshop" { "120" } else if ty == "Lightning talk" { "20" } else { "60" };
+        let len = if ty == "Workshop" {
+            "120"
+        } else if ty == "Lightning talk" {
+            "20"
+        } else {
+            "60"
+        };
         let (seat, reservable) = availability(r);
         let sp = r.pick(SPEAKERS).to_string();
         Session {
@@ -91,7 +119,15 @@ pub fn generate() -> Vec<Session> {
             title,
             abbreviation: Some(format!("{abbr_base}{suffix}")),
             type_: Some(ty.to_string()),
-            level: Some(format!("{level} - {}", match level { 100 => "Foundational", 200 => "Intermediate", 300 => "Advanced", _ => "Expert" })),
+            level: Some(format!(
+                "{level} - {}",
+                match level {
+                    100 => "Foundational",
+                    200 => "Intermediate",
+                    300 => "Advanced",
+                    _ => "Expert",
+                }
+            )),
             venue: Some(r.pick(VENUES).to_string()),
             room: Some(format!("Room {}", 100 + r.below(40))),
             is_all_day_session: Some(false),
@@ -119,7 +155,12 @@ pub fn generate() -> Vec<Session> {
         let base = format!("{prefix}30{}", k + 1);
         for (i, suffix) in ["-R1", "-R2"].iter().enumerate() {
             let day = (k + i * 2) % DAYS.len();
-            out.push(make(&mut r, Some((title.clone(), base.clone(), service.clone(), topic.to_string())), suffix, day));
+            out.push(make(
+                &mut r,
+                Some((title.clone(), base.clone(), service.clone(), topic.to_string())),
+                suffix,
+                day,
+            ));
         }
     }
     while out.len() < 120 {

@@ -88,7 +88,8 @@ impl Db {
                 topics, services, speakers, tl, al, loc, raw, session_hash(s)
             ],
         )?;
-        self.conn.execute("DELETE FROM sessions_fts WHERE event_id=?1 AND session_id=?2", params![event_id, s.session_id])?;
+        self.conn
+            .execute("DELETE FROM sessions_fts WHERE event_id=?1 AND session_id=?2", params![event_id, s.session_id])?;
         self.conn.execute(
             "INSERT INTO sessions_fts(event_id,session_id,code,title,abstract,speakers,topics,services,title_l10n,abstract_l10n)
              VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",
@@ -108,7 +109,11 @@ impl Db {
     pub fn stored_abstract(&self, event_id: &str, session_id: &str) -> Result<Option<String>> {
         Ok(self
             .conn
-            .query_row("SELECT abstract FROM sessions WHERE event_id=?1 AND session_id=?2", params![event_id, session_id], |r| r.get(0))
+            .query_row(
+                "SELECT abstract FROM sessions WHERE event_id=?1 AND session_id=?2",
+                params![event_id, session_id],
+                |r| r.get(0),
+            )
             .optional()?
             .flatten())
     }

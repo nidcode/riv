@@ -32,7 +32,10 @@ async fn walks_all_pages_with_variable_sizes() {
     let mut total = 0;
     loop {
         let p = api
-            .list_sessions_page("demo-reinvent", &ListSessionsParams { include_abstracts: false, next_token: tok.clone(), locale: None })
+            .list_sessions_page(
+                "demo-reinvent",
+                &ListSessionsParams { include_abstracts: false, next_token: tok.clone(), locale: None },
+            )
             .await
             .expect("page");
         assert!(p.items.iter().all(|i| i.abstract_.is_none()));
@@ -59,7 +62,10 @@ async fn reserve_reports_per_session_and_conflicts() {
     let s = server(Scenario::default()).await;
     let api = api(&s);
     let sessions = &s.state.sessions;
-    let a = sessions.iter().find(|x| x.is_reservable == Some(true) && !x.seat_availability.is_some_and(|v| v.is_full())).expect("a");
+    let a = sessions
+        .iter()
+        .find(|x| x.is_reservable == Some(true) && !x.seat_availability.is_some_and(|v| v.is_full()))
+        .expect("a");
     let first = api.reserve("demo-reinvent", std::slice::from_ref(&a.session_id)).await.expect("reserve");
     assert_eq!(first.successful, vec![a.session_id.clone()]);
     let again = api.reserve("demo-reinvent", std::slice::from_ref(&a.session_id)).await.expect("200 with failure");
@@ -68,8 +74,12 @@ async fn reserve_reports_per_session_and_conflicts() {
     let (s1, e1) = a.range_utc(chrono_tz::America::Los_Angeles).expect("range");
     let b = sessions
         .iter()
-        .find(|x| x.session_id != a.session_id && x.is_reservable == Some(true) && !x.seat_availability.is_some_and(|v| v.is_full())
-            && x.range_utc(chrono_tz::America::Los_Angeles).is_some_and(|(s2, e2)| s2 < e1 && s1 < e2))
+        .find(|x| {
+            x.session_id != a.session_id
+                && x.is_reservable == Some(true)
+                && !x.seat_availability.is_some_and(|v| v.is_full())
+                && x.range_utc(chrono_tz::America::Los_Angeles).is_some_and(|(s2, e2)| s2 < e1 && s1 < e2)
+        })
         .expect("an overlapping session exists");
     let r = api.reserve("demo-reinvent", std::slice::from_ref(&b.session_id)).await.expect("reserve b");
     assert_eq!(r.failed[0].code, BulkFailureCode::ScheduleConflict);
@@ -95,7 +105,14 @@ async fn throttle_is_retried_transparently() {
 async fn drop_after_write_is_unknown_but_applied() {
     let s = server(Scenario::parse("drop-after-write")).await;
     let api = api(&s);
-    let id = s.state.sessions.iter().find(|x| x.is_reservable == Some(true) && !x.seat_availability.is_some_and(|v| v.is_full())).expect("s").session_id.clone();
+    let id = s
+        .state
+        .sessions
+        .iter()
+        .find(|x| x.is_reservable == Some(true) && !x.seat_availability.is_some_and(|v| v.is_full()))
+        .expect("s")
+        .session_id
+        .clone();
     let err = api.reserve("demo-reinvent", std::slice::from_ref(&id)).await.unwrap_err();
     assert!(matches!(err, ApiError::Unknown(_)), "{err:?}");
     let sched = api.get_schedule("demo-reinvent").await.expect("schedule");
@@ -115,7 +132,13 @@ async fn edge_html_500_is_unknown_and_not_applied() {
 async fn personal_time_roundtrip_and_validation() {
     let s = server(Scenario::default()).await;
     let api = api(&s);
-    let ok = PersonalTimeInput { start_date_time: "2026-12-02T03:00:00".into(), end_date_time: "2026-12-02T05:00:00".into(), title: "Dinner".into(), description: "d".into(), location: None };
+    let ok = PersonalTimeInput {
+        start_date_time: "2026-12-02T03:00:00".into(),
+        end_date_time: "2026-12-02T05:00:00".into(),
+        title: "Dinner".into(),
+        description: "d".into(),
+        location: None,
+    };
     api.create_personal_time("demo-reinvent", &ok).await.expect("create");
     let sched = api.get_schedule("demo-reinvent").await.expect("schedule");
     assert_eq!(sched.personal_time.len(), 1);

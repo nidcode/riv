@@ -25,9 +25,7 @@ pub fn from_wire(s: &str) -> Option<DateTime<Utc>> {
 
 /// Parse "YYYY-MM-DDTHH:MM" (or with seconds) as a local time.
 pub fn parse_local(s: &str) -> Option<NaiveDateTime> {
-    NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M")
-        .or_else(|_| NaiveDateTime::parse_from_str(s, WIRE_FMT))
-        .ok()
+    NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M").or_else(|_| NaiveDateTime::parse_from_str(s, WIRE_FMT)).ok()
 }
 
 /// Session time parts (`date` "2025-12-02", `time` "16:00", `length` "60" minutes) to a UTC range.

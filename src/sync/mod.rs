@@ -89,7 +89,9 @@ async fn walk(
         progress(Progress { phase, done: seen, total: page.total_count as usize });
         match page.next_token {
             None => return Ok((seen, language)),
-            Some(t) if Some(&t) == token.as_ref() => return Err(RivError::general("nextToken did not advance; aborting sync")),
+            Some(t) if Some(&t) == token.as_ref() => {
+                return Err(RivError::general("nextToken did not advance; aborting sync"));
+            }
             Some(t) => token = Some(t),
         }
     }
@@ -125,7 +127,10 @@ pub async fn sync(api: &dyn EventsApi, db: &Db, opts: &SyncOptions, progress: &d
                     let mut s = s.clone();
                     if !with_abstracts && s.abstract_.is_none() {
                         // Never erase a stored abstract just because this pass omitted it.
-                        s.abstract_ = fin.get(&s.session_id).and_then(|p| p.abstract_.clone()).or(db.stored_abstract(eid, &s.session_id)?);
+                        s.abstract_ = fin
+                            .get(&s.session_id)
+                            .and_then(|p| p.abstract_.clone())
+                            .or(db.stored_abstract(eid, &s.session_id)?);
                     }
                     db.upsert_session(eid, &s, tz, None)?;
                     fin.insert(s.session_id.clone(), s);
@@ -140,7 +145,10 @@ pub async fn sync(api: &dyn EventsApi, db: &Db, opts: &SyncOptions, progress: &d
             let mut pending: Vec<(String, L10n)> = Vec::new();
             let (_, lang) = walk(api, eid, Some(loc), with_abstracts, "locale", progress, |items| {
                 for s in items {
-                    pending.push((s.session_id.clone(), L10n { locale: loc.clone(), title: Some(s.title.clone()), abstract_: s.abstract_.clone() }));
+                    pending.push((
+                        s.session_id.clone(),
+                        L10n { locale: loc.clone(), title: Some(s.title.clone()), abstract_: s.abstract_.clone() },
+                    ));
                 }
                 Ok(())
             })
@@ -173,7 +181,10 @@ pub async fn sync(api: &dyn EventsApi, db: &Db, opts: &SyncOptions, progress: &d
         }
     }
     report.sessions = fin.len();
-    report.changed = fin.values().filter(|s| before.get(&s.session_id).is_none_or(|h| *h != crate::db::catalog::session_hash(s))).count();
+    report.changed = fin
+        .values()
+        .filter(|s| before.get(&s.session_id).is_none_or(|h| *h != crate::db::catalog::session_hash(s)))
+        .count();
     report.catalog_version = db.finish_sync_run(run, fin.len(), report.changed)?;
     Ok(report)
 }

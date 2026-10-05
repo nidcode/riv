@@ -46,19 +46,25 @@ impl TokenProvider for StaticToken {
 /// Reads and refreshes credentials held in a `TokenStore`.
 pub struct StoredTokens<S: TokenStore> {
     store: S,
+    oauth_base: String,
     lock: tokio::sync::Mutex<()>,
 }
 
 impl<S: TokenStore> StoredTokens<S> {
     pub fn new(store: S) -> Self {
-        Self { store, lock: tokio::sync::Mutex::new(()) }
+        Self { store, oauth_base: oauth::oauth_base(), lock: tokio::sync::Mutex::new(()) }
+    }
+
+    pub fn with_oauth_base(mut self, base: impl Into<String>) -> Self {
+        self.oauth_base = base.into();
+        self
     }
 
     async fn do_refresh(&self) -> Result<Option<String>> {
         let _g = self.lock.lock().await;
         let Some(c) = self.store.load()? else { return Ok(None) };
         let Some(rt) = c.refresh_token.clone() else { return Ok(None) };
-        let mut fresh = oauth::refresh(&rt).await?;
+        let mut fresh = oauth::refresh(&self.oauth_base, &rt).await?;
         if fresh.id_token.is_none() {
             fresh.id_token = c.id_token;
         }
@@ -74,10 +80,7 @@ impl<S: TokenStore> TokenProvider for StoredTokens<S> {
         if c.expires_at - 60 > chrono::Utc::now().timestamp() {
             return Some(c.access_token);
         }
-        match self.do_refresh().await {
-            Ok(t) => t,
-            Err(_) => None,
-        }
+        self.do_refresh().await.unwrap_or_default()
     }
     async fn refresh(&self) -> Result<Option<String>> {
         self.do_refresh().await

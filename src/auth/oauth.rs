@@ -38,9 +38,9 @@ fn to_credentials(r: TokenResponse, previous_refresh: Option<String>) -> Credent
     }
 }
 
-async fn post_token(form: &[(&str, &str)]) -> Result<TokenResponse> {
+async fn post_token(base: &str, form: &[(&str, &str)]) -> Result<TokenResponse> {
     let resp = reqwest::Client::new()
-        .post(format!("{}/oauth2/token", oauth_base()))
+        .post(format!("{base}/oauth2/token"))
         .timeout(Duration::from_secs(30))
         .form(form)
         .send()
@@ -53,24 +53,31 @@ async fn post_token(form: &[(&str, &str)]) -> Result<TokenResponse> {
     resp.json::<TokenResponse>().await.map_err(|_| RivError::auth("token endpoint returned an unexpected body"))
 }
 
-pub async fn refresh(refresh_token: &str) -> Result<Credentials> {
-    let r = post_token(&[("grant_type", "refresh_token"), ("client_id", CLIENT_ID), ("refresh_token", refresh_token)])
-        .await?;
+pub async fn refresh(base: &str, refresh_token: &str) -> Result<Credentials> {
+    let r = post_token(
+        base,
+        &[("grant_type", "refresh_token"), ("client_id", CLIENT_ID), ("refresh_token", refresh_token)],
+    )
+    .await?;
     Ok(to_credentials(r, Some(refresh_token.to_string())))
 }
 
-pub async fn revoke(refresh_token: &str) -> Result<()> {
+pub async fn revoke(base: &str, refresh_token: &str) -> Result<()> {
     let resp = reqwest::Client::new()
-        .post(format!("{}/oauth2/revoke", oauth_base()))
+        .post(format!("{base}/oauth2/revoke"))
         .timeout(Duration::from_secs(30))
         .form(&[("token", refresh_token), ("client_id", CLIENT_ID)])
         .send()
         .await
         .map_err(|e| RivError::general(format!("revoke failed: {}", e.without_url())))?;
-    if resp.status().is_success() { Ok(()) } else { Err(RivError::general(format!("revoke returned {}", resp.status()))) }
+    if resp.status().is_success() {
+        Ok(())
+    } else {
+        Err(RivError::general(format!("revoke returned {}", resp.status())))
+    }
 }
 
-pub fn authorize_url(redirect_uri: &str, p: &Pkce) -> String {
+pub fn authorize_url(base: &str, redirect_uri: &str, p: &Pkce) -> String {
     let q = url::form_urlencoded::Serializer::new(String::new())
         .append_pair("response_type", "code")
         .append_pair("client_id", CLIENT_ID)
@@ -81,7 +88,7 @@ pub fn authorize_url(redirect_uri: &str, p: &Pkce) -> String {
         .append_pair("code_challenge_method", "S256")
         .append_pair("state", &p.state)
         .finish();
-    format!("{}/oauth2/authorize?{q}", oauth_base())
+    format!("{base}/oauth2/authorize?{q}")
 }
 
 /// Bind the first free loopback port in 8484..=8489.
@@ -116,14 +123,14 @@ fn open_browser(url: &str) -> bool {
 type CodeSlot = Arc<Mutex<Option<tokio::sync::oneshot::Sender<std::result::Result<String, String>>>>>;
 
 /// Interactive PKCE sign-in. `announce` receives the URL to show the user.
-pub async fn login(announce: impl Fn(&str)) -> Result<Credentials> {
+pub async fn login(base: &str, announce: impl Fn(&str)) -> Result<Credentials> {
     use axum::{Router, extract::Query, response::Html, routing::get};
     use std::collections::HashMap;
 
     let (listener, port) = bind_callback_port().await?;
     let redirect_uri = format!("http://localhost:{port}/callback");
     let pkce = Pkce::generate();
-    let url = authorize_url(&redirect_uri, &pkce);
+    let url = authorize_url(base, &redirect_uri, &pkce);
 
     let (tx, rx) = tokio::sync::oneshot::channel();
     let slot: CodeSlot = Arc::new(Mutex::new(Some(tx)));
@@ -145,7 +152,11 @@ pub async fn login(announce: impl Fn(&str)) -> Result<Credentials> {
                 if let Some(tx) = slot.lock().unwrap_or_else(|p| p.into_inner()).take() {
                     let _ = tx.send(outcome);
                 }
-                Html(if ok { "Signed in. You can close this tab and return to riv." } else { "Sign-in failed. Return to riv." })
+                Html(if ok {
+                    "Signed in. You can close this tab and return to riv."
+                } else {
+                    "Sign-in failed. Return to riv."
+                })
             }
         }),
     );
@@ -161,13 +172,16 @@ pub async fn login(announce: impl Fn(&str)) -> Result<Credentials> {
         Ok(Ok(Err(e))) => return Err(RivError::auth(format!("sign-in failed: {e}"))),
         _ => return Err(RivError::auth("sign-in timed out")),
     };
-    let r = post_token(&[
-        ("grant_type", "authorization_code"),
-        ("client_id", CLIENT_ID),
-        ("redirect_uri", &redirect_uri),
-        ("code", &code),
-        ("code_verifier", &pkce.verifier),
-    ])
+    let r = post_token(
+        base,
+        &[
+            ("grant_type", "authorization_code"),
+            ("client_id", CLIENT_ID),
+            ("redirect_uri", &redirect_uri),
+            ("code", &code),
+            ("code_verifier", &pkce.verifier),
+        ],
+    )
     .await?;
     Ok(to_credentials(r, None))
 }
@@ -179,7 +193,7 @@ mod tests {
     #[test]
     fn authorize_url_has_required_params() {
         let p = Pkce::generate();
-        let u = authorize_url("http://localhost:8484/callback", &p);
+        let u = authorize_url(DEFAULT_OAUTH_BASE, "http://localhost:8484/callback", &p);
         for needle in ["code_challenge_method=S256", "identity_provider=AWSBuilderID", "state=", "response_type=code"] {
             assert!(u.contains(needle), "missing {needle}");
         }

@@ -4,10 +4,14 @@
 
 pub mod api;
 pub mod auth;
+pub mod cli;
 pub mod db;
 pub mod error;
+pub mod format;
+pub mod i18n;
 pub mod mock;
 pub mod paths;
+pub mod schedule;
 pub mod search;
 pub mod sync;
 pub mod timeutil;

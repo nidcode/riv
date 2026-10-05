@@ -112,8 +112,18 @@ macro_rules! session_struct {
     };
 }
 session_struct!(
-    tracks, topics, industries, areas_of_interest, roles, services, segments, features,
-    customer_personas, experiences, additional_activities, focus_areas
+    tracks,
+    topics,
+    industries,
+    areas_of_interest,
+    roles,
+    services,
+    segments,
+    features,
+    customer_personas,
+    experiences,
+    additional_activities,
+    focus_areas
 );
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
@@ -241,7 +251,10 @@ pub struct ListSessionsParams {
 
 impl Session {
     /// UTC start/end from `sessionTime`. `default_tz` (the event's zone) applies when the session names none.
-    pub fn range_utc(&self, default_tz: chrono_tz::Tz) -> Option<(chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)> {
+    pub fn range_utc(
+        &self,
+        default_tz: chrono_tz::Tz,
+    ) -> Option<(chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)> {
         let st = self.session_time.as_ref()?;
         let tz = st.timezone.as_deref().and_then(crate::timeutil::parse_tz).unwrap_or(default_tz);
         crate::timeutil::session_range(st.date.as_deref()?, st.time.as_deref()?, st.length.as_deref(), tz)

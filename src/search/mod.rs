@@ -72,7 +72,12 @@ fn filters(q: &SearchQuery, params: &mut Vec<Value>) -> String {
 impl Db {
     /// Ranked search. Tries AND of all terms first, then tops up with OR so natural-language
     /// questions still return something. `busy` are UTC ranges (reserved sessions, personal time).
-    pub fn search(&self, event_id: &str, q: &SearchQuery, busy: &[(DateTime<Utc>, DateTime<Utc>)]) -> Result<Vec<StoredSession>> {
+    pub fn search(
+        &self,
+        event_id: &str,
+        q: &SearchQuery,
+        busy: &[(DateTime<Utc>, DateTime<Utc>)],
+    ) -> Result<Vec<StoredSession>> {
         let tz = self
             .event(event_id)?
             .and_then(|e| e.timezone)
@@ -83,7 +88,13 @@ impl Db {
         let mut out: Vec<StoredSession> = Vec::new();
         let mut seen = std::collections::HashSet::new();
 
-        let modes: Vec<Option<&str>> = if ts.is_empty() { vec![None] } else if ts.len() == 1 { vec![Some("AND")] } else { vec![Some("AND"), Some("OR")] };
+        let modes: Vec<Option<&str>> = if ts.is_empty() {
+            vec![None]
+        } else if ts.len() == 1 {
+            vec![Some("AND")]
+        } else {
+            vec![Some("AND"), Some("OR")]
+        };
         for mode in modes {
             if out.len() >= limit {
                 break;
@@ -93,7 +104,8 @@ impl Db {
                 Some(op) => {
                     params.insert(0, Value::Text(fts_expr(&ts, op)));
                     (
-                        "sessions_fts f JOIN sessions s ON s.event_id = f.event_id AND s.session_id = f.session_id".to_string(),
+                        "sessions_fts f JOIN sessions s ON s.event_id = f.event_id AND s.session_id = f.session_id"
+                            .to_string(),
                         BM25.to_string(),
                     )
                 }
@@ -135,9 +147,17 @@ impl Db {
         let day = s.session_time.as_ref().and_then(|t| t.date.clone());
         let mut found = Vec::new();
         for topic in &s.topics {
-            let q = SearchQuery { text: String::new(), day: day.clone(), topic: Some(topic.clone()), limit: max + 1, ..Default::default() };
+            let q = SearchQuery {
+                text: String::new(),
+                day: day.clone(),
+                topic: Some(topic.clone()),
+                limit: max + 1,
+                ..Default::default()
+            };
             for r in self.search(event_id, &q, &[])? {
-                if r.session.session_id != s.session_id && !found.iter().any(|f: &StoredSession| f.session.session_id == r.session.session_id) {
+                if r.session.session_id != s.session_id
+                    && !found.iter().any(|f: &StoredSession| f.session.session_id == r.session.session_id)
+                {
                     found.push(r);
                 }
             }
@@ -147,7 +167,12 @@ impl Db {
     }
 }
 
-fn fits(r: &StoredSession, (from, to): (NaiveTime, NaiveTime), busy: &[(DateTime<Utc>, DateTime<Utc>)], tz: chrono_tz::Tz) -> bool {
+fn fits(
+    r: &StoredSession,
+    (from, to): (NaiveTime, NaiveTime),
+    busy: &[(DateTime<Utc>, DateTime<Utc>)],
+    tz: chrono_tz::Tz,
+) -> bool {
     let Some((s, e)) = r.session.range_utc(tz) else { return false };
     let (ls, le) = (crate::timeutil::to_local(s, tz).time(), crate::timeutil::to_local(e, tz).time());
     ls >= from && le <= to && !busy.iter().any(|(bs, be)| s < *be && *bs < e)
