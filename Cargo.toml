@@ -1,7 +1,23 @@
 [package]
-name = "riv"
+name = "riv-reinvent"
 version = "0.1.0"
 edition = "2024"
+description = "re:Invent as Code: declare your agenda in a Kiro spec, plan the diff, apply it safely"
+license = "Apache-2.0"
+repository = "https://github.com/OWNER/riv"
+homepage = "https://github.com/OWNER/riv"
+readme = "README.md"
+keywords = ["reinvent", "aws", "kiro", "mcp", "agenda"]
+categories = ["command-line-utilities"]
+rust-version = "1.85"
+
+[lib]
+name = "riv"
+path = "src/lib.rs"
+
+[[bin]]
+name = "riv"
+path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.104"
@@ -34,3 +50,8 @@ url = "2.5.8"
 [dev-dependencies]
 assert_cmd = "2.2.2"
 tempfile = "3.27.0"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

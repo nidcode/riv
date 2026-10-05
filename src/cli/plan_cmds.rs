@@ -31,7 +31,13 @@ fn ask(question: &str, interactive: bool) -> String {
     if line.is_empty() { "TBD".into() } else { line.to_string() }
 }
 
-pub fn init(dir: PathBuf, goal: Option<String>, interests: Option<String>, constraints: Option<String>) -> Result<i32> {
+pub fn init(
+    dir: PathBuf,
+    goal: Option<String>,
+    interests: Option<String>,
+    constraints: Option<String>,
+    event: &str,
+) -> Result<i32> {
     let target = dir.join(".kiro/specs/reinvent-2026");
     std::fs::create_dir_all(&target)?;
     let interactive =
@@ -44,9 +50,10 @@ pub fn init(dir: PathBuf, goal: Option<String>, interests: Option<String>, const
         .replace("{{goal}}", &goal)
         .replace("{{interests}}", &interests)
         .replace("{{constraints}}", &constraints);
+    let design = crate::templates::DESIGN.replace("event: reinvent2026", &format!("event: {event}"));
     for (name, body) in [
         ("requirements.md", requirements.as_str()),
-        ("design.md", crate::templates::DESIGN),
+        ("design.md", design.as_str()),
         ("tasks.md", crate::templates::TASKS),
     ] {
         let p = target.join(name);

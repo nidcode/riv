@@ -93,6 +93,9 @@ pub enum Command {
         interests: Option<String>,
         #[arg(long)]
         constraints: Option<String>,
+        /// Event id written into design.md (e.g. demo-reinvent for the mock).
+        #[arg(long, env = "RIV_EVENT", default_value = DEFAULT_EVENT)]
+        event: String,
     },
     /// Diff the spec against your real schedule. Never writes to the API.
     Plan {
@@ -210,7 +213,9 @@ pub async fn run(cli: Cli) -> Result<i32> {
             .await
         }
         Command::Show { id, event, json } => catalog_cmds::show(&event, &id, json),
-        Command::Init { dir, goal, interests, constraints } => plan_cmds::init(dir, goal, interests, constraints),
+        Command::Init { dir, goal, interests, constraints, event } => {
+            plan_cmds::init(dir, goal, interests, constraints, &event)
+        }
         Command::Plan { spec, json } => plan_cmds::plan(spec, json).await,
         Command::Apply { plan, resume, spec, accept_seat_loss, yes, json } => {
             apply_cmds::run_apply(apply_cmds::ApplyArgs { plan, resume, spec, accept_seat_loss, yes, json }).await

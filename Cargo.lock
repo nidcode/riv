@@ -1520,7 +1520,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "riv"
+name = "riv-reinvent"
 version = "0.1.0"
 dependencies = [
  "anyhow",
