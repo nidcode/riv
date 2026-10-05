@@ -1,0 +1,65 @@
+[
+  {
+    "query": "Artificial Intelligence deep dive Amazon Aurora",
+    "expected": [
+      "mock-0052",
+      "mock-0111"
+    ]
+  },
+  {
+    "query": "Artificial Intelligence deep dive Amazon Bedrock",
+    "expected": [
+      "mock-0001",
+      "mock-0002"
+    ]
+  },
+  {
+    "query": "Data Analytics deep dive Amazon Aurora",
+    "expected": [
+      "mock-0009",
+      "mock-0010"
+    ]
+  },
+  {
+    "query": "building agentic amazon sagemaker ai",
+    "expected": [
+      "mock-0107"
+    ]
+  },
+  {
+    "query": "building cost-aware with amazon eks",
+    "expected": [
+      "mock-0100"
+    ]
+  },
+  {
+    "query": "building data amazon sagemaker ai",
+    "expected": [
+      "mock-0048"
+    ]
+  },
+  {
+    "query": "building multi-tenant with amazon athena",
+    "expected": [
+      "mock-0114"
+    ]
+  },
+  {
+    "query": "building multi-tenant with amazon s3",
+    "expected": [
+      "mock-0071"
+    ]
+  },
+  {
+    "query": "building platform aws step functions",
+    "expected": [
+      "mock-0056"
+    ]
+  },
+  {
+    "query": "building platform with amazon bedrock",
+    "expected": [
+      "mock-0083"
+    ]
+  }
+]

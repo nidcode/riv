@@ -2,6 +2,7 @@
 
 mod apply_cmds;
 mod auth_cmds;
+mod bench_cmd;
 mod catalog_cmds;
 pub mod ctx;
 mod day_cmds;
@@ -160,6 +161,21 @@ pub enum Command {
     },
     /// Start the local MCP server on stdio (for Kiro / Claude / Crew).
     Mcp,
+    /// Measure: protocol | first-run | warm | search-quality (writes bench/results/<date>.md).
+    Bench {
+        name: String,
+        #[arg(long, env = "RIV_EVENT", default_value = DEFAULT_EVENT)]
+        event: String,
+        /// Use an in-process mock server with the synthetic catalog (no sign-in).
+        #[arg(long)]
+        mock: bool,
+        #[arg(long, default_value_t = 5)]
+        runs: usize,
+        #[arg(long)]
+        fixture: Option<std::path::PathBuf>,
+        #[arg(long, default_value = "bench/results")]
+        out: std::path::PathBuf,
+    },
     /// Run the mock Events API server (synthetic data).
     Mock {
         #[arg(long, default_value_t = 8787)]
@@ -205,6 +221,9 @@ pub async fn run(cli: Cli) -> Result<i32> {
         Command::Prep { id, event, lang, json, attach } => day_cmds::prep(&event, id, lang, json, attach),
         Command::Doctor { event, json } => doctor::run(&event, json).await,
         Command::Mcp => crate::mcp::serve_stdio().await.map(|()| 0),
+        Command::Bench { name, event, mock, runs, fixture, out } => {
+            bench_cmd::run(&name, event, mock, runs, fixture, out).await
+        }
         Command::Mock { port, scenario } => mock_cmd::run(port, scenario).await,
     }
 }
