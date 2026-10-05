@@ -1,0 +1,12 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "riv-guard-apply",
+      "description": "Example: block `riv apply` shell commands that carry no --plan/--resume.",
+      "trigger": "PreToolUse",
+      "matcher": "shell",
+      "action": { "type": "command", "command": "bash dev.kiro/hooks/scripts/guard-apply.sh" }
+    }
+  ]
+}

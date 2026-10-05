@@ -4,6 +4,7 @@ mod apply_cmds;
 mod auth_cmds;
 mod catalog_cmds;
 pub mod ctx;
+mod doctor;
 mod mock_cmd;
 mod plan_cmds;
 
@@ -128,6 +129,13 @@ pub enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Check sign-in, catalog, API reachability and config (read-only).
+    Doctor {
+        #[arg(long, env = "RIV_EVENT", default_value = DEFAULT_EVENT)]
+        event: String,
+        #[arg(long)]
+        json: bool,
+    },
     /// Start the local MCP server on stdio (for Kiro / Claude / Crew).
     Mcp,
     /// Run the mock Events API server (synthetic data).
@@ -171,6 +179,7 @@ pub async fn run(cli: Cli) -> Result<i32> {
         }
         Command::Verify { spec, json } => apply_cmds::run_verify(spec, json).await,
         Command::Schedule { event, json } => apply_cmds::run_schedule(&event, json).await,
+        Command::Doctor { event, json } => doctor::run(&event, json).await,
         Command::Mcp => crate::mcp::serve_stdio().await.map(|()| 0),
         Command::Mock { port, scenario } => mock_cmd::run(port, scenario).await,
     }

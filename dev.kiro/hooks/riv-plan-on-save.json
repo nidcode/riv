@@ -1,0 +1,13 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "riv-plan-on-save",
+      "description": "Example: after the AGENT edits design.md, run a dry-run plan. File triggers fire only for agent changes, not manual saves; after a manual edit use /riv-plan or `riv plan` yourself.",
+      "trigger": "PostFileSave",
+      "matcher": "design\\.md$",
+      "action": { "type": "command", "command": "riv plan --json" },
+      "timeout": 60
+    }
+  ]
+}

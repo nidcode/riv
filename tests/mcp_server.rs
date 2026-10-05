@@ -79,7 +79,7 @@ async fn lists_the_tools_and_guards_apply() {
     let apply = tools.iter().find(|t| t.name == "riv_apply").expect("apply");
     assert!(apply.description.as_deref().unwrap_or("").contains("human approval"));
     let schema = serde_json::to_string(&apply.input_schema).expect("schema");
-    assert!(schema.contains("plan_id") || schema.contains("planId"));
+    assert!(schema.contains("planId") || schema.contains("planId"));
 }
 
 #[tokio::test]
@@ -109,9 +109,9 @@ async fn plan_then_apply_roundtrip() {
     assert!(plan.contains("NOT been applied") && plan.contains("~ favorite"), "{plan}");
     let id = plan.lines().find_map(|l| l.strip_prefix("planId: ")).expect("planId").trim().to_string();
     // an invented plan id cannot apply
-    let (err, out) = call(&f, "riv_apply", serde_json::json!({"plan_id": "BOGUS"})).await;
+    let (err, out) = call(&f, "riv_apply", serde_json::json!({"planId": "BOGUS"})).await;
     assert!(err && out.contains("no approved plan"), "{out}");
-    let (err, out) = call(&f, "riv_apply", serde_json::json!({"plan_id": id})).await;
+    let (err, out) = call(&f, "riv_apply", serde_json::json!({"planId": id})).await;
     assert!(!err && out.contains("DONE"), "{out}");
     let (_, v) = call(&f, "riv_verify", serde_json::json!({})).await;
     assert!(v.contains("matches"), "{v}");

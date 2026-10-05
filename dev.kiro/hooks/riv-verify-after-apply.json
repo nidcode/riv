@@ -1,0 +1,12 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "riv-verify-after-apply",
+      "description": "Example: after a shell tool ran `riv apply`, read back the schedule with `riv verify --json`.",
+      "trigger": "PostToolUse",
+      "matcher": "shell",
+      "action": { "type": "command", "command": "bash dev.kiro/hooks/scripts/verify-after-apply.sh" }
+    }
+  ]
+}

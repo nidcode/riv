@@ -30,6 +30,7 @@ pub struct Empty {
 }
 
 #[derive(Debug, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct Filters {
     pub level: Option<u32>,
     /// Weekday (`tue`) or ISO date.
@@ -60,6 +61,7 @@ pub struct SessionArgs {
 }
 
 #[derive(Debug, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct PlanArgs {
     /// Path to design.md (default `.kiro/specs/reinvent-2026/design.md`).
     pub spec_path: Option<String>,
@@ -67,6 +69,7 @@ pub struct PlanArgs {
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct ApplyArgs {
     /// The planId returned by the immediately preceding riv_plan call. Required.
     pub plan_id: String,

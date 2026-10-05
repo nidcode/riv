@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "riv-reinvent",
+  "version": "0.1.0",
+  "description": "re:Invent as Code: plan and safely apply your re:Invent agenda from a Kiro spec",
+  "author": { "name": "niida" },
+  "keywords": ["re:Invent", "reinvent", "session", "agenda", "schedule", "catalog", "AWS Events"],
+  "license": "Apache-2.0",
+  "repository": "https://github.com/OWNER/riv"
+}
