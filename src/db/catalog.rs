@@ -212,3 +212,13 @@ pub(crate) fn stored_from_row(r: &rusqlite::Row<'_>) -> rusqlite::Result<StoredS
     let l10n = locale.map(|locale| L10n { locale, title: r.get(1).ok().flatten(), abstract_: r.get(2).ok().flatten() });
     Ok(StoredSession { session, l10n })
 }
+
+impl Db {
+    pub fn sessions_by_title(&self, event_id: &str, title: &str) -> Result<Vec<StoredSession>> {
+        let mut st = self.conn.prepare(
+            "SELECT raw, title_l10n, abstract_l10n, l10n_locale FROM sessions WHERE event_id=?1 AND title=?2 ORDER BY start_utc, session_id",
+        )?;
+        let rows = st.query_map(params![event_id, title], stored_from_row)?;
+        Ok(rows.collect::<std::result::Result<_, _>>()?)
+    }
+}
