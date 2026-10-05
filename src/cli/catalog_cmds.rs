@@ -66,7 +66,7 @@ pub struct SearchArgs {
 
 pub async fn search(a: SearchArgs) -> Result<i32> {
     let db = open_db()?;
-    let tz = event_tz(&db, &a.event);
+    let tz = db.event_tz(&a.event);
     let fields_owned: Vec<String> = a
         .fields
         .as_deref()
@@ -124,7 +124,7 @@ pub async fn search(a: SearchArgs) -> Result<i32> {
 
 pub fn show(event: &str, id: &str, json: bool) -> Result<i32> {
     let db = open_db()?;
-    let tz = event_tz(&db, event);
+    let tz = db.event_tz(event);
     let found = db.find_sessions(event, id)?;
     if found.is_empty() {
         return Err(RivError::general(format!("no session `{id}` in the local catalog (run `riv sync`)")));

@@ -110,7 +110,7 @@ impl Tools {
         };
         on_blocking(move || async move {
             let db = Db::open(&path)?;
-            let tz = crate::cli::ctx::event_tz(&db, &event);
+            let tz = db.event_tz(&event);
             let busy = if q.free_between.is_some() {
                 crate::schedule::busy_ranges(api.as_ref(), &db, &event, tz).await.unwrap_or_default()
             } else {
@@ -132,7 +132,7 @@ impl Tools {
         let (path, id) = (self.db_path.clone(), id.to_string());
         on_blocking(move || async move {
             let db = Db::open(&path)?;
-            let tz = crate::cli::ctx::event_tz(&db, &event);
+            let tz = db.event_tz(&event);
             let found = db.find_sessions(&event, &id)?;
             if found.is_empty() {
                 return Err(RivError::general(format!("no session `{id}` in the local catalog (run `riv sync`)")));
@@ -178,7 +178,7 @@ impl Tools {
         let (api, path) = (self.api.clone(), self.db_path.clone());
         on_blocking(move || async move {
             let db = Db::open(&path)?;
-            let tz = crate::cli::ctx::event_tz(&db, &event);
+            let tz = db.event_tz(&event);
             let sched = api.get_schedule(&event).await?;
             Ok::<_, RivError>(cap_reply(crate::schedule::render_schedule(&db, &event, tz, &sched)?))
         })

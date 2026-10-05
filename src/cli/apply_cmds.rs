@@ -84,7 +84,7 @@ fn print_verify(rep: &VerifyReport, cat: &dyn crate::plan::CatalogView) {
 
 pub async fn run_schedule(event: &str, json: bool) -> Result<i32> {
     let db = open_db()?;
-    let tz = event_tz(&db, event);
+    let tz = db.event_tz(event);
     let sched = make_api().get_schedule(event).await.map_err(RivError::from)?;
     if json {
         println!("{}", serde_json::to_string_pretty(&sched)?);

@@ -222,7 +222,7 @@ pub async fn today_text(
     format: Format,
     lang: Lang,
 ) -> crate::error::Result<String> {
-    let tz = crate::cli::ctx::event_tz(db, event_id);
+    let tz = db.event_tz(event_id);
     let date = date.unwrap_or_else(|| crate::timeutil::to_local(Utc::now(), tz).date());
     let schedule = api.get_schedule(event_id).await?;
     let venues = Venues::load(&crate::paths::venues_path()).unwrap_or_default();

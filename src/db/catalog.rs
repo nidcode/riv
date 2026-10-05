@@ -235,3 +235,15 @@ impl Db {
         Ok(rows.collect::<std::result::Result<_, _>>()?)
     }
 }
+
+impl Db {
+    /// The event's stored time zone, if any.
+    pub fn event_tz_opt(&self, event_id: &str) -> Option<chrono_tz::Tz> {
+        self.event(event_id).ok().flatten().and_then(|e| e.timezone).and_then(|t| crate::timeutil::parse_tz(&t))
+    }
+
+    /// The event's time zone, falling back to the default until the event has been synced.
+    pub fn event_tz(&self, event_id: &str) -> chrono_tz::Tz {
+        self.event_tz_opt(event_id).unwrap_or(crate::timeutil::DEFAULT_EVENT_TZ)
+    }
+}

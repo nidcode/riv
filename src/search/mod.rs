@@ -78,11 +78,7 @@ impl Db {
         q: &SearchQuery,
         busy: &[(DateTime<Utc>, DateTime<Utc>)],
     ) -> Result<Vec<StoredSession>> {
-        let tz = self
-            .event(event_id)?
-            .and_then(|e| e.timezone)
-            .and_then(|t| crate::timeutil::parse_tz(&t))
-            .unwrap_or(chrono_tz::UTC);
+        let tz = self.event_tz(event_id);
         let limit = if q.limit == 0 { 10 } else { q.limit };
         let ts = terms(&q.text);
         let mut out: Vec<StoredSession> = Vec::new();

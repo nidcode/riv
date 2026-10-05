@@ -84,7 +84,7 @@ pub fn note_template(lang: Lang, code: &str, title: &str) -> String {
 }
 
 pub fn build_pack(db: &Db, event_id: &str, id_or_code: &str, lang: Lang) -> Result<PrepPack> {
-    let tz = crate::cli::ctx::event_tz(db, event_id);
+    let tz = db.event_tz(event_id);
     let found = db.find_sessions(event_id, id_or_code)?;
     let base: StoredSession = match found.len() {
         0 => return Err(RivError::general(format!("no session `{id_or_code}` in the local catalog (run `riv sync`)"))),

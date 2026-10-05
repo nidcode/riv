@@ -18,13 +18,9 @@ pub fn read_desired(spec_path: &Path) -> Result<Desired> {
 }
 
 pub fn event_tz_of(db: &Db, d: &Desired) -> chrono_tz::Tz {
-    db.event(&d.event)
-        .ok()
-        .flatten()
-        .and_then(|e| e.timezone)
-        .and_then(|t| crate::timeutil::parse_tz(&t))
+    db.event_tz_opt(&d.event)
         .or_else(|| crate::timeutil::parse_tz(&d.timezone))
-        .unwrap_or(chrono_tz::America::Los_Angeles)
+        .unwrap_or(crate::timeutil::DEFAULT_EVENT_TZ)
 }
 
 pub async fn create_plan(

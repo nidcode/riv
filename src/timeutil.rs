@@ -6,6 +6,9 @@ use chrono_tz::Tz;
 /// Wire format of personal time: UTC, no offset, no `Z`.
 pub const WIRE_FMT: &str = "%Y-%m-%dT%H:%M:%S";
 
+/// Zone assumed for an event whose time zone is not known yet (re:Invent is in Las Vegas).
+pub const DEFAULT_EVENT_TZ: chrono_tz::Tz = chrono_tz::America::Los_Angeles;
+
 pub fn parse_tz(name: &str) -> Option<Tz> {
     name.parse::<Tz>().ok()
 }
