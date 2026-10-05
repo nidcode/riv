@@ -1,0 +1,12 @@
+{
+  "note": "ESTIMATES, not official data. Walking minutes between venues are rough guesses; edit them to match your own experience, then copy this file to ~/.config/riv/venues.json (Windows: %APPDATA%\\riv\\venues.json). Pairs that are missing are shown as 'unknown' — riv never invents a walking time.",
+  "sameVenueMinutes": 5,
+  "walkMinutes": [
+    { "from": "Venetian", "to": "Wynn", "minutes": 15 },
+    { "from": "Venetian", "to": "MGM Grand", "minutes": 40 },
+    { "from": "Venetian", "to": "Mandalay Bay", "minutes": 50 },
+    { "from": "Wynn", "to": "MGM Grand", "minutes": 45 },
+    { "from": "Wynn", "to": "Mandalay Bay", "minutes": 55 },
+    { "from": "MGM Grand", "to": "Mandalay Bay", "minutes": 25 }
+  ]
+}

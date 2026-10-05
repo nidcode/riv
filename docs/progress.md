@@ -6,8 +6,8 @@ Resume here. Phases follow the brief (§17).
 - [x] Phase 1 auth + sync: PKCE/refresh/token store, HTTP client (401/429/409/5xx), `riv sync|search|show`, FTS, `scripts/check-locale.sh`, real-API read-only tests (`RIV_REAL_API=1`)
 - [x] Phase 2 desired state + plan: YAML parse/validate, pure plan builder, `riv init|plan`, semantics tests (tests/plan_semantics.rs)
 - [x] Phase 3 apply / verify / journal: executor state machine, batching/quota/429/409, UNKNOWN + `--resume`, replace + restore, tasks.md, `riv apply|verify|schedule`; DoD tests in tests/apply_dod.rs
-- [ ] Phase 4 MCP + Power
-- [ ] Phase 5 today / prep / i18n
+- [x] Phase 4 MCP + Power: `riv mcp` (rmcp, 9 tools, camelCase args), plugin.json/mcp.json/mcp.local.json, skills, steering, hooks (examples), `riv doctor`, docs/crew.md. NOT verified by a human: Kiro IDE Power import, MCP Inspector
+- [x] Phase 5 today / prep / i18n: `riv today` (phone/ide), venues.example.json, `riv prep` (+ --attach), riv_today/riv_prep_pack, en/ja dictionary
 - [ ] Phase 6 bench + docs + dist
 - [ ] Phase 7 (stretch)
 

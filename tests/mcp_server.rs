@@ -73,7 +73,17 @@ async fn lists_the_tools_and_guards_apply() {
     let tools = f.client.list_all_tools().await.expect("tools");
     let mut names: Vec<String> = tools.iter().map(|t| t.name.to_string()).collect();
     names.sort();
-    for n in ["riv_status", "riv_search", "riv_session", "riv_schedule", "riv_plan", "riv_apply", "riv_verify"] {
+    for n in [
+        "riv_status",
+        "riv_search",
+        "riv_session",
+        "riv_schedule",
+        "riv_plan",
+        "riv_apply",
+        "riv_verify",
+        "riv_today",
+        "riv_prep_pack",
+    ] {
         assert!(names.contains(&n.to_string()), "missing {n}: {names:?}");
     }
     let apply = tools.iter().find(|t| t.name == "riv_apply").expect("apply");
@@ -117,4 +127,17 @@ async fn plan_then_apply_roundtrip() {
     assert!(v.contains("matches"), "{v}");
     let (_, s) = call(&f, "riv_schedule", serde_json::json!({})).await;
     assert!(s.contains("Favorites (1)"), "{s}");
+}
+
+#[tokio::test]
+async fn today_and_prep_pack_tools() {
+    let f = fixture().await;
+    let (err, out) = call(&f, "riv_today", serde_json::json!({"date": "2026-12-01", "format": "phone"})).await;
+    assert!(!err && out.contains("Nothing scheduled"), "{out}");
+    let (err, _) = call(&f, "riv_today", serde_json::json!({"date": "bogus"})).await;
+    assert!(err);
+    let (err, out) = call(&f, "riv_prep_pack", serde_json::json!({"id": "mock-0001", "lang": "ja"})).await;
+    assert!(!err, "{out}");
+    let v: serde_json::Value = serde_json::from_str(&out).expect("json pack");
+    assert!(v["queries"].as_array().is_some_and(|q| !q.is_empty()) && v["savePath"].is_string());
 }

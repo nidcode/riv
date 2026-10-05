@@ -41,3 +41,15 @@ FTS5 `unicode61` tokenizer. Natural-language queries try AND of all terms first,
 
 ## D1-3 Auth
 `ulid` 3.0 targets a different `rand` major than our `rand` 0.10, so ULIDs are built with `Ulid::from_parts` (src/ids.rs). OAuth endpoints are injectable (`RIV_OAUTH_BASE`, `StoredTokens::with_oauth_base`) so refresh is tested against the mock without `set_var`.
+
+## D4-1 MCP
+rmcp 3.5 (`ServerHandler` + `#[tool_router]`/`#[tool_handler]`). Tool logic is in `mcp/tools.rs` as plain async functions (testable without the protocol); the rmcp shell converts to `CallToolResult` (errors → `isError`). Tools that touch SQLite run their non-`Send` futures on a blocking thread (`on_blocking`: `spawn_blocking` + `Handle::block_on`). Tool arguments are camelCase (`planId`, `acceptSeatLoss`, `freeBetween`, `resumeRunId`, `specPath`). Added `resumeRunId` to `riv_apply` (needed for the UNKNOWN workflow). Replies are capped near 8 KB. `riv_apply` cannot show its own confirmation: approval is the host's tool-call approval, plus the planId/hash checks.
+
+## D4-2 Hooks & Power layout
+Hooks use Kiro's current schema (`version: v1`, `trigger: PostFileSave|PreToolUse|PostToolUse`, `matcher`, `action.type: command`). They live in `dev.kiro/hooks/` as examples as the brief asks, with a README telling users to copy them to `.kiro/hooks/`. Guard/verify scripts grep the whole stdin payload, so they do not depend on payload field names (unverified; marked TODO). `plugin.json` author/repository are placeholders (`niida`, `https://github.com/OWNER/riv`) until the repo exists.
+
+## D5-1 today
+Walking time is looked up only in the user's `venues.json` (estimates); unknown pairs and the first item of a day (no origin) print "unknown" — never guessed. `sameVenueMinutes` is a config value, not assumed. GetSchedule is called once per `today` (60/min quota); no cache.
+
+## D5-2 prep
+`priorYearCandidates` are strings (hints/search material), not facts: the catalog holds one year. Code matching across years is a heuristic and the README says so.

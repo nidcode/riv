@@ -61,6 +61,21 @@ pub struct SessionArgs {
 }
 
 #[derive(Debug, Deserialize, JsonSchema, Default)]
+pub struct TodayArgs {
+    /// `YYYY-MM-DD` in the venue's time zone (default: today there).
+    pub date: Option<String>,
+    pub format: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct PrepArgs {
+    /// sessionId or short code.
+    pub id: String,
+    /// `ja` adds Japanese search queries and note headings.
+    pub lang: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PlanArgs {
     /// Path to design.md (default `.kiro/specs/reinvent-2026/design.md`).
@@ -141,6 +156,22 @@ impl RivServer {
     )]
     async fn riv_apply(&self, Parameters(a): Parameters<ApplyArgs>) -> CallToolResult {
         text(self.tools.apply(Some(a.plan_id), a.resume_run_id, a.accept_seat_loss.unwrap_or(false), a.spec_path).await)
+    }
+
+    #[tool(
+        name = "riv_today",
+        description = "Today's schedule in venue-local time with walking time and leave-by hints. format=phone: <=12 lines, no tables."
+    )]
+    async fn riv_today(&self, Parameters(a): Parameters<TodayArgs>) -> CallToolResult {
+        text(self.tools.today(a.date, fmt(&a.format)).await)
+    }
+
+    #[tool(
+        name = "riv_prep_pack",
+        description = "Prep pack JSON for a session: facts, related sessions, prior-year search hints, suggested queries, note template and save path. Write the note yourself; keep quotes short with source links; never fetch video transcripts."
+    )]
+    async fn riv_prep_pack(&self, Parameters(a): Parameters<PrepArgs>) -> CallToolResult {
+        text(self.tools.prep_pack(&a.id, a.lang).await)
     }
 
     #[tool(

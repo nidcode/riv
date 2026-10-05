@@ -255,6 +255,35 @@ impl Tools {
         .await?
     }
 
+    pub async fn today(&self, date: Option<String>, fmt: Format) -> Result<String> {
+        let date = match date.filter(|d| !d.is_empty()) {
+            Some(d) => Some(
+                chrono::NaiveDate::parse_from_str(&d, "%Y-%m-%d")
+                    .map_err(|_| RivError::validation("date expects YYYY-MM-DD"))?,
+            ),
+            None => None,
+        };
+        let (api, path, event) = (self.api.clone(), self.db_path.clone(), self.default_event.clone());
+        on_blocking(move || async move {
+            let db = Db::open(&path)?;
+            Ok::<_, RivError>(cap_reply(
+                crate::today::today_text(api.as_ref(), &db, &event, date, fmt, crate::i18n::lang()).await?,
+            ))
+        })
+        .await?
+    }
+
+    pub async fn prep_pack(&self, id: &str, lang: Option<String>) -> Result<String> {
+        let (path, event, id) = (self.db_path.clone(), self.default_event.clone(), id.to_string());
+        let l = if lang.as_deref() == Some("ja") { crate::i18n::Lang::Ja } else { crate::i18n::Lang::En };
+        on_blocking(move || async move {
+            let db = Db::open(&path)?;
+            let pack = crate::prep::build_pack(&db, &event, &id, l)?;
+            Ok::<_, RivError>(cap_reply(serde_json::to_string_pretty(&pack)?))
+        })
+        .await?
+    }
+
     pub fn seat_loss_flag() -> &'static str {
         FLAG_SEAT_LOSS
     }

@@ -80,6 +80,19 @@ async fn quick_start_flow() {
         assert_eq!(c.run(&["verify"], "en").0, 0);
         let (_, out, _) = c.run(&["schedule", "--event", ev], "ja");
         assert!(out.contains("お気に入り (1)"), "{out}");
+        // prep + today
+        let (code, out, _) = c.run(&["prep", &id, "--event", ev, "--json"], "ja");
+        assert_eq!(code, 0, "{out}");
+        let pack: serde_json::Value = serde_json::from_str(&out).expect("pack json");
+        let save = pack["savePath"].as_str().expect("savePath").to_string();
+        let note = c.work.path().join(&save);
+        std::fs::create_dir_all(note.parent().expect("dir")).expect("mkdir");
+        std::fs::write(&note, "# note").expect("note");
+        assert_eq!(c.run(&["prep", "--attach", &id, note.to_str().expect("path"), "--event", ev], "en").0, 0);
+        let (code, out, _) = c.run(&["today", "--event", ev, "--date", "2026-12-01", "--format", "phone"], "ja");
+        assert_eq!(code, 0, "{out}");
+        assert!(out.contains("予定はありません"), "{out}");
+        assert_eq!(c.run(&["today", "--event", ev, "--date", "nope"], "en").0, 2);
         // a second plan has nothing to do
         let (_, out, _) = c.run(&["plan"], "en");
         assert!(out.contains("No changes"), "{out}");

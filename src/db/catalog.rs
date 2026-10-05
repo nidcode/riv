@@ -222,3 +222,16 @@ impl Db {
         Ok(rows.collect::<std::result::Result<_, _>>()?)
     }
 }
+
+impl Db {
+    /// Runs of the same session: `AIM301` plus `AIM301-R1`, `AIM301-R2`, ...
+    pub fn sessions_by_code_base(&self, event_id: &str, base: &str) -> Result<Vec<StoredSession>> {
+        let mut st = self.conn.prepare(
+            "SELECT raw, title_l10n, abstract_l10n, l10n_locale FROM sessions
+             WHERE event_id=?1 AND (code=?2 COLLATE NOCASE OR code LIKE ?3 ESCAPE '\\') ORDER BY start_utc, session_id",
+        )?;
+        let like = format!("{}-R%", base.replace('\\', "\\\\").replace('%', "\\%").replace('_', "\\_"));
+        let rows = st.query_map(params![event_id, base, like], stored_from_row)?;
+        Ok(rows.collect::<std::result::Result<_, _>>()?)
+    }
+}

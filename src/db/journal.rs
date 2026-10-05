@@ -144,3 +144,21 @@ impl Db {
         Ok(rows.collect::<std::result::Result<_, _>>()?)
     }
 }
+
+impl Db {
+    /// Record that a prep note exists for a session (the file must already exist).
+    pub fn attach_prep(&self, event: &str, session_id: &str, path: &str) -> Result<()> {
+        self.conn.execute(
+            "INSERT INTO prep_notes(event,session_id,path,attached_at) VALUES (?1,?2,?3,?4)
+             ON CONFLICT(event,session_id) DO UPDATE SET path=?3, attached_at=?4",
+            params![event, session_id, path, now()],
+        )?;
+        Ok(())
+    }
+
+    pub fn prep_notes(&self, event: &str) -> Result<std::collections::HashSet<String>> {
+        let mut st = self.conn.prepare("SELECT session_id FROM prep_notes WHERE event=?1")?;
+        let rows = st.query_map([event], |r| r.get::<_, String>(0))?;
+        Ok(rows.collect::<std::result::Result<_, _>>()?)
+    }
+}

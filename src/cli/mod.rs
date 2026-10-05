@@ -4,6 +4,7 @@ mod apply_cmds;
 mod auth_cmds;
 mod catalog_cmds;
 pub mod ctx;
+mod day_cmds;
 mod doctor;
 mod mock_cmd;
 mod plan_cmds;
@@ -129,6 +130,27 @@ pub enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Today's schedule in venue-local time, with walking hints.
+    Today {
+        #[arg(long, env = "RIV_EVENT", default_value = DEFAULT_EVENT)]
+        event: String,
+        #[arg(long)]
+        date: Option<String>,
+        #[arg(long, default_value = "ide")]
+        format: String,
+    },
+    /// Build a prep pack for a session (or `--attach <id> <path>` to register a note).
+    Prep {
+        id: Option<String>,
+        #[arg(long, env = "RIV_EVENT", default_value = DEFAULT_EVENT)]
+        event: String,
+        #[arg(long)]
+        lang: Option<String>,
+        #[arg(long)]
+        json: bool,
+        #[arg(long, num_args = 2, value_names = ["ID", "PATH"])]
+        attach: Option<Vec<String>>,
+    },
     /// Check sign-in, catalog, API reachability and config (read-only).
     Doctor {
         #[arg(long, env = "RIV_EVENT", default_value = DEFAULT_EVENT)]
@@ -179,6 +201,8 @@ pub async fn run(cli: Cli) -> Result<i32> {
         }
         Command::Verify { spec, json } => apply_cmds::run_verify(spec, json).await,
         Command::Schedule { event, json } => apply_cmds::run_schedule(&event, json).await,
+        Command::Today { event, date, format } => day_cmds::today(&event, date, &format).await,
+        Command::Prep { id, event, lang, json, attach } => day_cmds::prep(&event, id, lang, json, attach),
         Command::Doctor { event, json } => doctor::run(&event, json).await,
         Command::Mcp => crate::mcp::serve_stdio().await.map(|()| 0),
         Command::Mock { port, scenario } => mock_cmd::run(port, scenario).await,
