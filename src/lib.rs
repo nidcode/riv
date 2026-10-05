@@ -1,14 +1,9 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+#![forbid(unsafe_code)]
+#![cfg_attr(not(test), deny(clippy::unwrap_used))]
+//! riv — re:Invent as Code.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub mod api;
+pub mod auth;
+pub mod error;
+pub mod paths;
+pub mod timeutil;
