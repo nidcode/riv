@@ -1399,6 +1399,7 @@ dependencies = [
  "chrono-tz",
  "clap",
  "directories",
+ "futures-core",
  "hex",
  "rand",
  "reqwest",

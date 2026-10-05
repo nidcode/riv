@@ -2,7 +2,7 @@
 
 use super::*;
 use crate::auth::TokenProvider;
-use reqwest::{Method, StatusCode};
+use reqwest::Method;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -54,13 +54,14 @@ impl HttpApi {
         &self,
         op: Op,
         units: u32,
-        method: Method,
-        path: &str,
+        spec: &ops::OpSpec,
+        args: &[&str],
         query: &[(&str, String)],
         body: Option<serde_json::Value>,
         write: bool,
     ) -> ApiResult<Reply> {
-        let url = format!("{}{}", self.base, path);
+        let url = format!("{}{}", self.base, spec.path(args));
+        let method = Method::from_bytes(spec.method.as_bytes()).unwrap_or(Method::GET);
         let mut refreshed = false;
         let mut throttled = 0;
         let mut server_errs = 0;
@@ -175,33 +176,27 @@ fn strip_url(e: reqwest::Error) -> String {
     e.without_url().to_string()
 }
 
-fn enc(s: &str) -> String {
-    url::form_urlencoded::byte_serialize(s.as_bytes()).collect()
-}
-
 #[async_trait]
 impl EventsApi for HttpApi {
     async fn list_events(&self) -> ApiResult<Vec<Event>> {
-        let r = self.send(Op::GetSession, 0, Method::GET, "/v1/events", &[], None, false).await?;
+        let r = self.send(Op::GetSession, 0, &ops::LIST_EVENTS, &[], &[], None, false).await?;
         Ok(self.json::<ListEventsResponse>(r).await?.items)
     }
 
     async fn get_event(&self, event_id: &str) -> ApiResult<Event> {
-        let p = format!("/v1/events/{}", enc(event_id));
-        let r = self.send(Op::GetSession, 0, Method::GET, &p, &[], None, false).await?;
+        let r = self.send(Op::GetSession, 0, &ops::GET_EVENT, &[event_id], &[], None, false).await?;
         Ok(self.json::<GetEventResponse>(r).await?.event)
     }
 
     async fn list_sessions_page(&self, event_id: &str, p: &ListSessionsParams) -> ApiResult<SessionPage> {
-        let path = format!("/v1/events/{}/sessions", enc(event_id));
-        let mut q: Vec<(&str, String)> = vec![("includeAbstracts", p.include_abstracts.to_string())];
+                let mut q: Vec<(&str, String)> = vec![("includeAbstracts", p.include_abstracts.to_string())];
         if let Some(l) = &p.locale {
             q.push(("locale", l.clone()));
         }
         if let Some(t) = &p.next_token {
             q.push(("nextToken", t.clone()));
         }
-        let r = self.send(Op::ListSessions, 1, Method::GET, &path, &q, None, false).await?;
+        let r = self.send(Op::ListSessions, 1, &ops::LIST_SESSIONS, &[event_id], &q, None, false).await?;
         let lang = r.content_language.clone();
         let body: ListSessionsResponse = self.json(r).await?;
         Ok(SessionPage {
@@ -213,57 +208,48 @@ impl EventsApi for HttpApi {
     }
 
     async fn get_session(&self, event_id: &str, session_id: &str, locale: Option<&str>) -> ApiResult<Session> {
-        let path = format!("/v1/events/{}/sessions/{}", enc(event_id), enc(session_id));
-        let q: Vec<(&str, String)> = locale.map(|l| vec![("locale", l.to_string())]).unwrap_or_default();
-        let r = self.send(Op::GetSession, 1, Method::GET, &path, &q, None, false).await?;
+                let q: Vec<(&str, String)> = locale.map(|l| vec![("locale", l.to_string())]).unwrap_or_default();
+        let r = self.send(Op::GetSession, 1, &ops::GET_SESSION, &[event_id, session_id], &q, None, false).await?;
         Ok(self.json::<GetSessionResponse>(r).await?.session)
     }
 
     async fn get_schedule(&self, event_id: &str) -> ApiResult<Schedule> {
-        let path = format!("/v1/events/{}/schedule", enc(event_id));
-        let r = self.send(Op::GetSchedule, 1, Method::GET, &path, &[], None, false).await?;
+                let r = self.send(Op::GetSchedule, 1, &ops::GET_SCHEDULE, &[event_id], &[], None, false).await?;
         Ok(self.json::<GetScheduleResponse>(r).await?.schedule)
     }
 
     async fn reserve(&self, event_id: &str, ids: &[String]) -> ApiResult<BulkResult> {
-        let path = format!("/v1/events/{}/reservations", enc(event_id));
-        let body = serde_json::json!({ "sessionIds": ids });
-        let r = self.send(Op::ReserveSessions, ids.len() as u32, Method::POST, &path, &[], Some(body), true).await?;
+                let body = serde_json::json!({ "sessionIds": ids });
+        let r = self.send(Op::ReserveSessions, ids.len() as u32, &ops::RESERVE_SESSIONS, &[event_id], &[], Some(body), true).await?;
         Ok(self.json::<BulkResponse>(r).await?.result)
     }
 
     async fn cancel_reservation(&self, event_id: &str, session_id: &str) -> ApiResult<()> {
-        let path = format!("/v1/events/{}/reservations/{}", enc(event_id), enc(session_id));
-        self.send(Op::CancelReservation, 1, Method::DELETE, &path, &[], None, true).await.map(|_| ())
+        self.send(Op::CancelReservation, 1, &ops::CANCEL_RESERVATION, &[event_id, session_id], &[], None, true).await.map(|_| ())
     }
 
     async fn associate_favorites(&self, event_id: &str, ids: &[String]) -> ApiResult<BulkResult> {
-        let path = format!("/v1/events/{}/favorites", enc(event_id));
-        let body = serde_json::json!({ "sessionIds": ids });
-        let r = self.send(Op::AssociateFavorites, ids.len() as u32, Method::POST, &path, &[], Some(body), true).await?;
+                let body = serde_json::json!({ "sessionIds": ids });
+        let r = self.send(Op::AssociateFavorites, ids.len() as u32, &ops::ASSOCIATE_FAVORITES, &[event_id], &[], Some(body), true).await?;
         Ok(self.json::<BulkResponse>(r).await?.result)
     }
 
     async fn disassociate_favorite(&self, event_id: &str, session_id: &str) -> ApiResult<()> {
-        let path = format!("/v1/events/{}/favorites/{}", enc(event_id), enc(session_id));
-        self.send(Op::DisassociateFavorite, 1, Method::DELETE, &path, &[], None, true).await.map(|_| ())
+        self.send(Op::DisassociateFavorite, 1, &ops::DISASSOCIATE_FAVORITE, &[event_id, session_id], &[], None, true).await.map(|_| ())
     }
 
     async fn create_personal_time(&self, event_id: &str, input: &PersonalTimeInput) -> ApiResult<()> {
-        let path = format!("/v1/events/{}/personal-time", enc(event_id));
-        let body = serde_json::to_value(input).map_err(|e| ApiError::BadRequest(e.to_string()))?;
-        self.send(Op::CreatePersonalTime, 1, Method::POST, &path, &[], Some(body), true).await.map(|_| ())
+                let body = serde_json::to_value(input).map_err(|e| ApiError::BadRequest(e.to_string()))?;
+        self.send(Op::CreatePersonalTime, 1, &ops::CREATE_PERSONAL_TIME, &[event_id], &[], Some(body), true).await.map(|_| ())
     }
 
     async fn update_personal_time(&self, event_id: &str, id: &str, input: &PersonalTimeInput) -> ApiResult<()> {
-        let path = format!("/v1/events/{}/personal-time/{}", enc(event_id), enc(id));
         let body = serde_json::to_value(input).map_err(|e| ApiError::BadRequest(e.to_string()))?;
-        self.send(Op::UpdatePersonalTime, 1, Method::PUT, &path, &[], Some(body), true).await.map(|_| ())
+        self.send(Op::UpdatePersonalTime, 1, &ops::UPDATE_PERSONAL_TIME, &[event_id, id], &[], Some(body), true).await.map(|_| ())
     }
 
     async fn delete_personal_time(&self, event_id: &str, id: &str) -> ApiResult<()> {
-        let path = format!("/v1/events/{}/personal-time/{}", enc(event_id), enc(id));
-        self.send(Op::DeletePersonalTime, 1, Method::DELETE, &path, &[], None, true).await.map(|_| ())
+        self.send(Op::DeletePersonalTime, 1, &ops::DELETE_PERSONAL_TIME, &[event_id, id], &[], None, true).await.map(|_| ())
     }
 
     fn remaining(&self, op: Op) -> u32 {

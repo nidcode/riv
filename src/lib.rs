@@ -5,5 +5,6 @@
 pub mod api;
 pub mod auth;
 pub mod error;
+pub mod mock;
 pub mod paths;
 pub mod timeutil;

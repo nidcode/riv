@@ -238,3 +238,17 @@ pub struct ListSessionsParams {
     pub include_abstracts: bool,
     pub next_token: Option<String>,
 }
+
+impl Session {
+    /// UTC start/end from `sessionTime`. `default_tz` (the event's zone) applies when the session names none.
+    pub fn range_utc(&self, default_tz: chrono_tz::Tz) -> Option<(chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)> {
+        let st = self.session_time.as_ref()?;
+        let tz = st.timezone.as_deref().and_then(crate::timeutil::parse_tz).unwrap_or(default_tz);
+        crate::timeutil::session_range(st.date.as_deref()?, st.time.as_deref()?, st.length.as_deref(), tz)
+    }
+
+    /// Display code: the abbreviation, falling back to the session id.
+    pub fn code(&self) -> &str {
+        self.abbreviation.as_deref().unwrap_or(&self.session_id)
+    }
+}

@@ -1,6 +1,7 @@
 //! External I/O boundary for the AWS Events API. Everything else talks to `EventsApi`.
 
 pub mod http;
+pub mod ops;
 pub mod quota;
 pub mod types;
 
