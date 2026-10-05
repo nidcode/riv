@@ -3,6 +3,7 @@
 //! riv — re:Invent as Code.
 
 pub mod api;
+pub mod apply;
 pub mod auth;
 pub mod cli;
 pub mod db;

@@ -1,5 +1,6 @@
 //! clap definitions and dispatch. Command bodies live in sibling modules.
 
+mod apply_cmds;
 mod auth_cmds;
 mod catalog_cmds;
 pub mod ctx;
@@ -96,6 +97,36 @@ pub enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Apply an approved plan (needs --plan from `riv plan`).
+    Apply {
+        #[arg(long)]
+        plan: Option<String>,
+        /// Reconcile an interrupted run with the schedule and send only what is missing.
+        #[arg(long)]
+        resume: Option<String>,
+        #[arg(long)]
+        spec: Option<std::path::PathBuf>,
+        #[arg(long)]
+        accept_seat_loss: bool,
+        #[arg(long)]
+        yes: bool,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Compare the spec with your real schedule (read-only).
+    Verify {
+        #[arg(long)]
+        spec: Option<std::path::PathBuf>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Show your reserved sessions, favorites and personal time.
+    Schedule {
+        #[arg(long, env = "RIV_EVENT", default_value = DEFAULT_EVENT)]
+        event: String,
+        #[arg(long)]
+        json: bool,
+    },
     /// Run the mock Events API server (synthetic data).
     Mock {
         #[arg(long, default_value_t = 8787)]
@@ -132,6 +163,11 @@ pub async fn run(cli: Cli) -> Result<i32> {
         Command::Show { id, event, json } => catalog_cmds::show(&event, &id, json),
         Command::Init { dir, goal, interests, constraints } => plan_cmds::init(dir, goal, interests, constraints),
         Command::Plan { spec, json } => plan_cmds::plan(spec, json).await,
+        Command::Apply { plan, resume, spec, accept_seat_loss, yes, json } => {
+            apply_cmds::run_apply(apply_cmds::ApplyArgs { plan, resume, spec, accept_seat_loss, yes, json }).await
+        }
+        Command::Verify { spec, json } => apply_cmds::run_verify(spec, json).await,
+        Command::Schedule { event, json } => apply_cmds::run_schedule(&event, json).await,
         Command::Mock { port, scenario } => mock_cmd::run(port, scenario).await,
     }
 }

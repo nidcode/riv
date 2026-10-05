@@ -18,7 +18,7 @@ pub const SCHEMA_VERSION: u32 = 1;
 pub const PLAN_TTL_MINUTES: i64 = 30;
 pub const FLAG_SEAT_LOSS: &str = "accept-seat-loss";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub enum ActionKind {
     #[serde(rename = "cancel")]
     Cancel,
