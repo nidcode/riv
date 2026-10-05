@@ -54,7 +54,7 @@ pub fn render_tasks(d: &Desired, s: &Schedule, cat: &dyn CatalogView, outcomes: 
         };
         push(&ds.id, line.trim_end().to_string());
     }
-    let mut out = format!("<!-- {BANNER} -->\n{}\n\n", t(BANNER));
+    let mut out = format!("{}\n\n", t(BANNER));
     for (day, mut lines) in days {
         lines.sort();
         out.push_str(&format!("## {day}\n"));
