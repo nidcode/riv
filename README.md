@@ -8,15 +8,15 @@ For AWS Heroes / Community Builders registered for re:Invent 2026, mostly Kiro u
 
 ## Install
 
-Pick one (replace `OWNER` after the first release; see [docs/progress.md](docs/progress.md)):
+Pick one (replace `nidcode` after the first release; see [docs/progress.md](docs/progress.md)):
 
 ```sh
 # 1. shell installer (macOS / Linux)
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/OWNER/riv/releases/latest/download/riv-reinvent-installer.sh | sh
-# Windows: powershell -c "irm https://github.com/OWNER/riv/releases/latest/download/riv-reinvent-installer.ps1 | iex"
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.sh | sh
+# Windows: powershell -c "irm https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.ps1 | iex"
 
 # 2. Homebrew
-brew install OWNER/tap/riv-reinvent
+brew install nidcode/tap/riv-reinvent
 
 # 3. npx (no install; this is what the Kiro Power uses)
 npx -y riv-reinvent --help

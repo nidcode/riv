@@ -12,7 +12,7 @@ Resume here. Phases follow the brief (§17).
 - [ ] Phase 7 (stretch)
 
 Remaining / needs a human (deferred):
-- Replace `OWNER` (repository, homebrew tap) and author in plugin.json/Cargo.toml/dist-workspace.toml/README; create the GitHub repo + tap; add `NPM_TOKEN` and `HOMEBREW_TAP_TOKEN` secrets; tag `v0.1.0`; then verify `npx -y riv-reinvent mcp` (package has a single bin `riv`; checked locally with `dist build --artifacts=global`).
+- Replace `nidcode` (repository, homebrew tap) and author in plugin.json/Cargo.toml/dist-workspace.toml/README; create the GitHub repo + tap; add `NPM_TOKEN` and `HOMEBREW_TAP_TOKEN` secrets; tag `v0.1.0`; then verify `npx -y riv-reinvent mcp` (package has a single bin `riv`; checked locally with `dist build --artifacts=global`).
 - Real `riv login` + `riv sync` on reinvent2026; fill `bench/fixtures/queries.json` (30 real questions); run `riv bench protocol` with a real token (remote MCP part may need manual measurement).
 - Import the Power in Kiro IDE and run MCP Inspector against `riv mcp`; verify hook payload fields (see dev.kiro/hooks/README.md) and Crew registration steps.
 - Official hackathon rules check (docs/rules-compliance.md TODO).

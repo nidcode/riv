@@ -10,15 +10,15 @@ re:Invent 2026 に登録している AWS Heroes / Community Builders、特に Ki
 
 ## インストール
 
-いずれか 1 つを選んでください（最初のリリース後に `OWNER` を置き換えてください。[docs/progress.md](docs/progress.md) を参照）。
+いずれか 1 つを選んでください（最初のリリース後に `nidcode` を置き換えてください。[docs/progress.md](docs/progress.md) を参照）。
 
 ```sh
 # 1. shell installer (macOS / Linux)
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/OWNER/riv/releases/latest/download/riv-reinvent-installer.sh | sh
-# Windows: powershell -c "irm https://github.com/OWNER/riv/releases/latest/download/riv-reinvent-installer.ps1 | iex"
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.sh | sh
+# Windows: powershell -c "irm https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.ps1 | iex"
 
 # 2. Homebrew
-brew install OWNER/tap/riv-reinvent
+brew install nidcode/tap/riv-reinvent
 
 # 3. npx (no install; this is what the Kiro Power uses)
 npx -y riv-reinvent --help
