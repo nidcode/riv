@@ -2,3 +2,6 @@
 *.db
 credentials.json
 .env
+
+# Personal agenda created by `riv init` (contains real session ids); never commit
+/.kiro/
