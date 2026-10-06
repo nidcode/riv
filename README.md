@@ -79,6 +79,8 @@ What riv will **not** do: poll for seats / auto-reserve, apply without an approv
 
 `init`, `login`, `logout`, `whoami`, `events`, `sync`, `search`, `show`, `schedule`, `plan`, `apply`, `verify`, `today`, `prep`, `doctor`, `mcp`, `mock`, `bench`. `--json` where a machine reads the output; `RIV_LANG=ja|en` switches wording. Exit codes: 0 ok, 1 error, 2 validation, 3 auth, 4 plan rejected, 5 partial failure.
 
+Language: `riv config set lang ja` saves it (`riv config show` explains where the effective value comes from). Order: `RIV_LANG` > saved config > OS locale.
+
 Environment: `RIV_API_BASE` (default `https://api.awsevents.com`), `RIV_TOKEN` (skips PKCE; mock only), `RIV_EVENT`, `RIV_SPEC`, `RIV_LANG`, `RIV_CONFIG_DIR` / `RIV_DATA_DIR`, `RIV_LOG`.
 
 ## Known limitations

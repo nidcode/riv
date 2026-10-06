@@ -9,13 +9,22 @@ pub enum Lang {
     Ja,
 }
 
+/// Pure resolution order: `RIV_LANG` > saved config > OS locale (`LC_ALL`, `LANG`) > English.
+pub fn resolve_lang(env_riv: Option<&str>, config: Option<&str>, os: Option<&str>) -> Lang {
+    let pick = [env_riv, config, os].into_iter().flatten().find(|v| !v.is_empty());
+    match pick {
+        Some(v) if v.to_lowercase().starts_with("ja") => Lang::Ja,
+        _ => Lang::En,
+    }
+}
+
 pub fn lang() -> Lang {
-    let v = std::env::var("RIV_LANG")
-        .or_else(|_| std::env::var("LC_ALL"))
-        .or_else(|_| std::env::var("LANG"))
-        .unwrap_or_default()
-        .to_lowercase();
-    if v.starts_with("ja") { Lang::Ja } else { Lang::En }
+    let os = std::env::var("LC_ALL").ok().filter(|v| !v.is_empty()).or_else(|| std::env::var("LANG").ok());
+    resolve_lang(
+        std::env::var("RIV_LANG").ok().as_deref(),
+        crate::config::Config::load().lang.as_deref(),
+        os.as_deref(),
+    )
 }
 
 pub fn t_in(lang: Lang, key: &str) -> String {
@@ -47,6 +56,14 @@ mod tests {
         assert_eq!(t_in(Lang::En, "Reserved"), "Reserved");
         assert_eq!(t_in(Lang::Ja, "Reserved"), "予約済み");
         assert_eq!(t_in(Lang::Ja, "no such key"), "no such key");
+    }
+
+    #[test]
+    fn resolution_order() {
+        assert_eq!(resolve_lang(Some("en"), Some("ja"), Some("ja_JP.UTF-8")), Lang::En, "env beats config");
+        assert_eq!(resolve_lang(None, Some("ja"), Some("en_US.UTF-8")), Lang::Ja, "config beats OS");
+        assert_eq!(resolve_lang(None, None, Some("ja_JP.UTF-8")), Lang::Ja);
+        assert_eq!(resolve_lang(Some(""), None, None), Lang::En);
     }
 
     #[test]

@@ -7,6 +7,7 @@ pub mod apply;
 pub mod auth;
 pub mod bench;
 pub mod cli;
+pub mod config;
 pub mod db;
 pub mod desired;
 pub mod error;

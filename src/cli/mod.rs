@@ -4,6 +4,7 @@ mod apply_cmds;
 mod auth_cmds;
 mod bench_cmd;
 mod catalog_cmds;
+mod config_cmd;
 pub mod ctx;
 mod day_cmds;
 mod doctor;
@@ -155,6 +156,11 @@ pub enum Command {
         #[arg(long, num_args = 2, value_names = ["ID", "PATH"])]
         attach: Option<Vec<String>>,
     },
+    /// Read or change saved settings (currently: lang).
+    Config {
+        #[command(subcommand)]
+        action: ConfigAction,
+    },
     /// Check sign-in, catalog, API reachability and config (read-only).
     Doctor {
         #[arg(long, env = "RIV_EVENT", default_value = DEFAULT_EVENT)]
@@ -187,6 +193,18 @@ pub enum Command {
         #[arg(long)]
         scenario: Option<String>,
     },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum ConfigAction {
+    /// Save a setting, e.g. `riv config set lang ja`.
+    Set { key: String, value: String },
+    /// Print one setting.
+    Get { key: String },
+    /// Remove a saved setting.
+    Unset { key: String },
+    /// Print all settings and where they come from.
+    Show,
 }
 
 pub async fn run(cli: Cli) -> Result<i32> {
@@ -224,6 +242,7 @@ pub async fn run(cli: Cli) -> Result<i32> {
         Command::Schedule { event, json } => apply_cmds::run_schedule(&event, json).await,
         Command::Today { event, date, format } => day_cmds::today(&event, date, &format).await,
         Command::Prep { id, event, lang, json, attach } => day_cmds::prep(&event, id, lang, json, attach),
+        Command::Config { action } => config_cmd::run(action),
         Command::Doctor { event, json } => doctor::run(&event, json).await,
         Command::Mcp => crate::mcp::serve_stdio().await.map(|()| 0),
         Command::Bench { name, event, mock, runs, fixture, out } => {

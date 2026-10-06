@@ -62,3 +62,6 @@ The brief listed Homebrew, but it needs a separate tap repo and token and the ma
 
 ## D6-3 `riv init` language
 Prompts and templates follow `RIV_LANG` (default: OS locale, so a Japanese `LANG` is enough). Japanese templates live beside the English ones (`*.ja.md`); a unit test checks both `design` variants declare the same desired state so the YAML cannot drift.
+
+## D6-4 Saved settings
+`~/.config/riv/config.json` (`riv config set|get|unset|show`), currently only `lang`. Resolution: `RIV_LANG` > config > `LC_ALL`/`LANG` > English (pure function `i18n::resolve_lang`, tested). A missing or corrupt config file silently yields defaults so it can never block the CLI.

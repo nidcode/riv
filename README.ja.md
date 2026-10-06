@@ -81,6 +81,8 @@ riv が**行わない**こと: 空席のポーリング / 自動予約、承認�
 
 `init`、`login`、`logout`、`whoami`、`events`、`sync`、`search`、`show`、`schedule`、`plan`、`apply`、`verify`、`today`、`prep`、`doctor`、`mcp`、`mock`、`bench`。機械が出力を読む場合は `--json` を使います。`RIV_LANG=ja|en` で表示言語を切り替えます。終了コード: 0 成功、1 エラー、2 検証エラー、3 認証エラー、4 plan 拒否、5 部分的な失敗。
 
+言語: `riv config set lang ja` で保存できます（`riv config show` で有効な値の出どころが分かります）。優先順位は `RIV_LANG` > 保存した設定 > OS のロケールです。
+
 環境変数: `RIV_API_BASE`（デフォルトは `https://api.awsevents.com`）、`RIV_TOKEN`（PKCE を省略します。mock 専用）、`RIV_EVENT`、`RIV_SPEC`、`RIV_LANG`、`RIV_CONFIG_DIR` / `RIV_DATA_DIR`、`RIV_LOG`。
 
 ## 既知の制限
