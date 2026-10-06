@@ -17,10 +17,7 @@ re:Invent 2026 に登録している AWS Heroes / Community Builders、特に Ki
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.sh | sh
 # Windows: powershell -c "irm https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.ps1 | iex"
 
-# 2. Homebrew
-brew install nidcode/tap/riv-reinvent
-
-# 3. npx (no install; this is what the Kiro Power uses)
+# 2. npx (no install; this is what the Kiro Power uses)
 npx -y riv-reinvent --help
 ```
 
@@ -98,6 +95,6 @@ riv が**行わない**こと: 空席のポーリング / 自動予約、承認�
 
 ## 開発
 
-`cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test`。テストは `RIV_REAL_API=1`（読み取り専用）の場合を除き、ネットワークに触れません。mock サーバーは空きポート上でインプロセスで動作します。ベンチマーク: `riv bench {protocol|first-run|warm|search-quality} [--mock]`、結果は `bench/results/` にあります。リリース: タグ `vX.Y.Z` を付けると、`dist` ワークフローがバイナリ、npm パッケージ（`NPM_TOKEN` シークレット）、Homebrew formula（`HOMEBREW_TAP_TOKEN`）を公開します。
+`cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test`。テストは `RIV_REAL_API=1`（読み取り専用）の場合を除き、ネットワークに触れません。mock サーバーは空きポート上でインプロセスで動作します。ベンチマーク: `riv bench {protocol|first-run|warm|search-quality} [--mock]`、結果は `bench/results/` にあります。リリース: タグ `vX.Y.Z` を付けると、`dist` ワークフローがバイナリ、npm パッケージ（`NPM_TOKEN` シークレット）を公開します。
 
 このリポジトリ内のカタログデータはすべて合成データです。AWS とは無関係です。ライセンス: Apache-2.0。

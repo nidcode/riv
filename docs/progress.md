@@ -8,11 +8,11 @@ Resume here. Phases follow the brief (§17).
 - [x] Phase 3 apply / verify / journal: executor state machine, batching/quota/429/409, UNKNOWN + `--resume`, replace + restore, tasks.md, `riv apply|verify|schedule`; DoD tests in tests/apply_dod.rs
 - [x] Phase 4 MCP + Power: `riv mcp` (rmcp, 9 tools, camelCase args), plugin.json/mcp.json/mcp.local.json, skills, steering, hooks (examples), `riv doctor`, docs/crew.md. NOT verified by a human: Kiro IDE Power import, MCP Inspector
 - [x] Phase 5 today / prep / i18n: `riv today` (phone/ide), venues.example.json, `riv prep` (+ --attach), riv_today/riv_prep_pack, en/ja dictionary
-- [x] Phase 6 bench + docs + dist: `riv bench` (mock results in bench/results), dist-workspace.toml + release workflow (shell/powershell/homebrew/npm), README en/ja, architecture, rules-compliance, article outline, spec.md, CHANGELOG. Package renamed `riv-reinvent` (`riv` taken on crates.io/npm)
+- [x] Phase 6 bench + docs + dist: `riv bench` (mock results in bench/results), dist-workspace.toml + release workflow (shell/powershell/npm), README en/ja, architecture, rules-compliance, article outline, spec.md, CHANGELOG. Package renamed `riv-reinvent` (`riv` taken on crates.io/npm)
 - [ ] Phase 7 (stretch)
 
 Remaining / needs a human (deferred):
-- Replace `nidcode` (repository, homebrew tap) and author in plugin.json/Cargo.toml/dist-workspace.toml/README; create the GitHub repo + tap; add `NPM_TOKEN` and `HOMEBREW_TAP_TOKEN` secrets; tag `v0.1.0`; then verify `npx -y riv-reinvent mcp` (package has a single bin `riv`; checked locally with `dist build --artifacts=global`).
+- Check repository owner/author in plugin.json/Cargo.toml/dist-workspace.toml/README; create the GitHub repo + tap; add `NPM_TOKEN` and `HOMEBREW_TAP_TOKEN` secrets; tag `v0.1.0`; then verify `npx -y riv-reinvent mcp` (package has a single bin `riv`; checked locally with `dist build --artifacts=global`).
 - Real `riv login` + `riv sync` on reinvent2026; fill `bench/fixtures/queries.json` (30 real questions); run `riv bench protocol` with a real token (remote MCP part may need manual measurement).
 - Import the Power in Kiro IDE and run MCP Inspector against `riv mcp`; verify hook payload fields (see dev.kiro/hooks/README.md) and Crew registration steps.
 - Official hackathon rules check (docs/rules-compliance.md TODO).

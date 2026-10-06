@@ -55,4 +55,7 @@ Walking time is looked up only in the user's `venues.json` (estimates); unknown 
 `priorYearCandidates` are strings (hints/search material), not facts: the catalog holds one year. Code matching across years is a heuristic and the README says so.
 
 ## D6-1 Product / package name (confirmed by the user)
-Product and package name: `riv-reinvent` (crates.io, npm, Homebrew formula, Power name). The command stays `riv`. `riv` alone is taken on crates.io and npm; `riv-reinvent` was free on both on 2026-10-06 (re-check right before the first publish).
+Product and package name: `riv-reinvent` (crates.io, npm, Power name). The command stays `riv`. `riv` alone is taken on crates.io and npm; `riv-reinvent` was free on both on 2026-10-06 (re-check right before the first publish).
+
+## D6-2 No Homebrew in the first release
+The brief listed Homebrew, but it needs a separate tap repo and token and the main audience (Kiro users) installs via `npx`. Removed from dist (`installers`, `publish-jobs`); can be re-added with `dist init`. Installers: shell, PowerShell, npm.

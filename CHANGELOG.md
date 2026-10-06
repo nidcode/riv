@@ -6,4 +6,4 @@
 - Local MCP server (`riv mcp`) and Kiro Power files (skills, steering, hook examples); Kiro Crew guide.
 - `riv today` (phone/ide), `riv prep`, en/ja wording.
 - Mock Events API (`riv mock`) with failure scenarios; `riv bench`.
-- Releases via `dist` (shell, PowerShell, Homebrew, npm `riv-reinvent`).
+- Releases via `dist` (shell, PowerShell, npm `riv-reinvent`; Homebrew intentionally left out for now).

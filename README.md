@@ -15,10 +15,7 @@ Pick one (replace `nidcode` after the first release; see [docs/progress.md](docs
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.sh | sh
 # Windows: powershell -c "irm https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.ps1 | iex"
 
-# 2. Homebrew
-brew install nidcode/tap/riv-reinvent
-
-# 3. npx (no install; this is what the Kiro Power uses)
+# 2. npx (no install; this is what the Kiro Power uses)
 npx -y riv-reinvent --help
 ```
 
@@ -96,6 +93,6 @@ Environment: `RIV_API_BASE` (default `https://api.awsevents.com`), `RIV_TOKEN` (
 
 ## Development
 
-`cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test`. Tests never touch the network except `RIV_REAL_API=1` (read-only). The mock server runs in-process on a free port. Benchmarks: `riv bench {protocol|first-run|warm|search-quality} [--mock]`, results in `bench/results/`. Releases: tag `vX.Y.Z`; the `dist` workflow publishes binaries, the npm package (`NPM_TOKEN` secret) and the Homebrew formula (`HOMEBREW_TAP_TOKEN`).
+`cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test`. Tests never touch the network except `RIV_REAL_API=1` (read-only). The mock server runs in-process on a free port. Benchmarks: `riv bench {protocol|first-run|warm|search-quality} [--mock]`, results in `bench/results/`. Releases: tag `vX.Y.Z`; the `dist` workflow publishes binaries, the npm package (`NPM_TOKEN` secret).
 
 All catalog data in this repository is synthetic. Not affiliated with AWS. License: Apache-2.0.

@@ -9,7 +9,7 @@ Work through these steps in order. Stop at the first failure and fix it before c
 
 ## Step 1: Check the environment
 Run `riv doctor`. It reports the riv version, sign-in state, last catalog sync, API reachability and whether `venues.json` exists.
-- `riv: command not found` → tell the user to install riv (shell installer, Homebrew, or `npx -y riv-reinvent`). See the README.
+- `riv: command not found` → tell the user to install riv (shell installer or `npx -y riv-reinvent`). See the README.
 
 ## Step 2: Sign in
 Run `riv login`. It prints a URL and opens the browser; the user signs in with their Builder ID. Never ask the user to paste tokens anywhere.
