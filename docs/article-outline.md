@@ -22,4 +22,4 @@ Working title: **re:Invent as Code: plan your agenda as a spec, without losing t
    - Heuristic code matching across years, estimated walking times, agent-only file hooks, FTS without Japanese morphology.
    - Credit and link: **reinvent26-planner**, **re:Plan 2026**, **reinvent-scout**, **reinvent2026-mcp** — what each does well, and what riv adds (declarative spec + safe apply for already-held seats).
 6. **Try it**
-   - 30-second mock quick start (`riv mock` → `sync` → `search` → `plan` → `apply`), then real sign-in; install via shell/Homebrew/npx; repository link; Apache-2.0.
+   - 30-second mock quick start (`riv mock` → `sync` → `search` → `plan` → `apply`), then real sign-in; install via shell/npx; repository link; Apache-2.0.
