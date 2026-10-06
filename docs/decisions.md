@@ -59,3 +59,6 @@ Product and package name: `riv-reinvent` (crates.io, npm, Power name). The comma
 
 ## D6-2 No Homebrew in the first release
 The brief listed Homebrew, but it needs a separate tap repo and token and the main audience (Kiro users) installs via `npx`. Removed from dist (`installers`, `publish-jobs`); can be re-added with `dist init`. Installers: shell, PowerShell, npm.
+
+## D6-3 `riv init` language
+Prompts and templates follow `RIV_LANG` (default: OS locale, so a Japanese `LANG` is enough). Japanese templates live beside the English ones (`*.ja.md`); a unit test checks both `design` variants declare the same desired state so the YAML cannot drift.
