@@ -20,7 +20,11 @@ Gateway の MCP 設定（Crew ダッシュボードの MCP パネル、または
 }
 ```
 
-`skills/` フォルダ（`setup`、`replan`、`prep`）を Crew のスキル置き場にコピーします。正確なパスや設定画面は Crew のバージョンによって異なります。**TODO: お使いの Crew のバージョンで確認してください**。ただし構成（stdio の MCP サーバー + SKILL.md フォルダ）は Kiro IDE と同じです。
+Crew の公式ドキュメントによると（2026-10-08 確認）:
+- **MCP**: ダッシュボードの *Agent Capabilities → Integrations (MCP)* でコマンド（`riv`、引数 `mcp`）を指定してサーバーを追加し、*Probe* で応答を確認します。*Discover & Sync* は既存の MCP 設定ファイルからサーバーを拾います。
+- **スキル**: `~/.kiro/crew/skills/` にフォルダごとコピーします（例: `cp -r skills/* ~/.kiro/crew/skills/`。各フォルダに `SKILL.md` が必要）。または *Settings → Skills → Discover* で GitHub から取り込めます（`nidcode/riv:skills/replan`）。取り込みはスナップショットなので、更新時は再取り込みします。任意の frontmatter キーは `triggers` と `always` です。
+- 設定は `~/.kiro/crew/`（または `KIROCREW_HOME`）にあり、`kirocrew config get|set|edit` で操作できます。
+- 未確認: stdio の MCP ツールに対する承認を Crew がどう表示するか。`riv_apply` を一度試して、適用前に承認プロンプトが出ることを確認してから使ってください。
 
 ## 3. 承認（重要）
 `riv_apply` は書き込みを行う唯一のツールです。**手動承認**のままにしてください。エージェントがこれを呼び出すと、Crew がチャットに承認ボタンを表示します。エージェントが示した差分を読んだ後にだけ、タップしてください。

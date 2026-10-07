@@ -20,7 +20,11 @@ Add the MCP server to the Gateway's MCP configuration (Crew dashboard → MCP pa
 }
 ```
 
-Copy the `skills/` folders (`setup`, `replan`, `prep`) into the Crew skills location. The exact paths and settings screens vary by Crew version — **TODO: verify against your Crew version**; the shape (a stdio MCP server + SKILL.md folders) is the same as in Kiro IDE.
+Per the Crew docs (checked 2026-10-08):
+- **MCP**: dashboard → *Agent Capabilities → Integrations (MCP)* → add a server by command (`riv` with args `mcp`), then *Probe* it. *Discover & Sync* also picks up servers from existing MCP config files.
+- **Skills**: copy the folders into `~/.kiro/crew/skills/` (e.g. `cp -r skills/* ~/.kiro/crew/skills/`; each needs `SKILL.md`), or import from GitHub via *Settings → Skills → Discover* (`nidcode/riv:skills/replan`). Imports are snapshots; re-import to update. Optional frontmatter keys: `triggers`, `always`.
+- Settings live in `~/.kiro/crew/` (or `KIROCREW_HOME`); `kirocrew config get|set|edit`.
+- Not verified here: how Crew shows tool approvals for a stdio MCP tool — test `riv_apply` once and confirm you get an approval prompt before relying on it.
 
 ## 3. Approvals (important)
 `riv_apply` is the only tool that writes. Keep it on **manual approval**: when the agent calls it, Crew shows an approval button in the chat; tap it only after you read the diff the agent showed you.
