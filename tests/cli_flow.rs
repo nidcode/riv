@@ -57,6 +57,9 @@ async fn quick_start_flow() {
         let (_, out, _) = c.run(&["search", "--event", ev, "--limit", "2", "--json", "bedrock"], "en");
         assert_eq!(serde_json::from_str::<serde_json::Value>(&out).expect("json").as_array().map(Vec::len), Some(2));
         assert_eq!(c.run(&["show", "--event", ev, "nope"], "en").0, 1);
+        let (code, out, _) = c.run(&["show", "--event", ev, &id, "--live"], "en");
+        assert_eq!(code, 0, "{out}");
+        assert!(out.contains(&id) && out.contains("seats:"), "{out}");
 
         assert_eq!(c.run(&["init", ".", "--goal", "g", "--interests", "i", "--constraints", "c"], "en").0, 0);
         let spec = c.work.path().join(".kiro/specs/reinvent-2026/design.md");

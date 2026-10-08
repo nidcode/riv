@@ -6,7 +6,7 @@
 - `want`: `reserved` | `favorite` | `none`。行を削除しても何も取り消されません。取り消すときは `want: none` を使います。
 - `pin: true` は固定です。riv は触りませんが、衝突の判定には使います。
 - `replaces: <sessionId>` は予約の置換です（先に取り消してから予約します。元の席を失う可能性があります）。
-- `blocks` の時刻は `timezone` の現地時刻です。
+- `blocks` の時刻は `timezone` の現地時刻です。ブロックに `want: none` を書くと、riv が作った個人時間を削除します（手で作ったものには触れません）。
 
 ```yaml
 # riv:desired-state v1

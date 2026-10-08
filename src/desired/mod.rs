@@ -49,6 +49,8 @@ struct RawSession {
 #[serde(deny_unknown_fields)]
 struct RawBlock {
     key: String,
+    #[serde(default)]
+    want: BlockWant,
     title: String,
     description: String,
     start: String,
@@ -77,9 +79,19 @@ pub struct DesiredSession {
     pub note: Option<String>,
 }
 
+/// `present` (default) keeps the block on the schedule; `none` removes a block riv created.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum BlockWant {
+    #[default]
+    Present,
+    None,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct DesiredBlock {
     pub key: String,
+    pub want: BlockWant,
     pub title: String,
     pub description: String,
     /// Local time in `timezone`, `YYYY-MM-DDTHH:MM`.
@@ -157,6 +169,7 @@ pub fn parse(yaml: &str) -> Result<Desired> {
         .blocks
         .into_iter()
         .map(|b| DesiredBlock {
+            want: b.want,
             key: b.key,
             title: b.title,
             description: b.description,

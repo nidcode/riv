@@ -71,6 +71,14 @@ pub fn render_plan(plan: &Plan, cat: &dyn CatalogView) -> String {
                 n_unf += 1;
                 line(format!("~ unfavorite  {target}"));
             }
+            ActionKind::BlockDelete => {
+                n_blk += 1;
+                line(format!(
+                    "- block.delete  \"{}\"  {}",
+                    a.title.as_deref().unwrap_or(""),
+                    a.start_utc.as_deref().unwrap_or("")
+                ));
+            }
             ActionKind::BlockCreate | ActionKind::BlockUpdate => {
                 n_blk += 1;
                 let verb = if a.kind == ActionKind::BlockCreate { "+ block.create" } else { "~ block.update" };

@@ -77,6 +77,8 @@ What riv will **not** do: poll for seats / auto-reserve, apply without an approv
 
 ## Commands
 
+`riv show <id> --live` asks the API (GetSession) for the current seat availability instead of the last sync. Personal-time blocks in the spec can be created, updated and, with `want: none`, deleted.
+
 `init`, `login`, `logout`, `whoami`, `events`, `sync`, `search`, `show`, `schedule`, `plan`, `apply`, `verify`, `today`, `prep`, `doctor`, `mcp`, `mock`, `bench`. `--json` where a machine reads the output; `RIV_LANG=ja|en` switches wording. Exit codes: 0 ok, 1 error, 2 validation, 3 auth, 4 plan rejected, 5 partial failure.
 
 Language: `riv config set lang ja` saves it (`riv config show` explains where the effective value comes from). Order: `RIV_LANG` > saved config > OS locale.

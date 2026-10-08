@@ -127,13 +127,18 @@ impl Tools {
         .await?
     }
 
-    pub async fn session(&self, id: &str, event: Option<String>, fmt: Format) -> Result<String> {
+    pub async fn session(&self, id: &str, event: Option<String>, fmt: Format, live: bool) -> Result<String> {
         let event = self.event(&event);
-        let (path, id) = (self.db_path.clone(), id.to_string());
+        let (path, id, api) = (self.db_path.clone(), id.to_string(), self.api.clone());
         on_blocking(move || async move {
             let db = Db::open(&path)?;
             let tz = db.event_tz(&event);
-            let found = db.find_sessions(&event, &id)?;
+            let mut found = db.find_sessions(&event, &id)?;
+            if live {
+                for f in &mut found {
+                    f.session = api.get_session(&event, &f.session.session_id, None).await?;
+                }
+            }
             if found.is_empty() {
                 return Err(RivError::general(format!("no session `{id}` in the local catalog (run `riv sync`)")));
             }

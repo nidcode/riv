@@ -136,6 +136,9 @@ fn reconcile(slots: &mut [Slot], s: &Schedule) {
             ActionKind::Favorite => s.favorites.contains(&sid),
             ActionKind::Unfavorite => !s.favorites.contains(&sid),
             ActionKind::BlockCreate | ActionKind::BlockUpdate => has(&a.title, &a.start_utc, &a.end_utc),
+            ActionKind::BlockDelete => {
+                !s.personal_time.iter().any(|p| Some(&p.personal_time_id) == a.personal_time_id.as_ref())
+            }
         };
         if applied {
             slot.status = ActionStatus::Done;
@@ -323,6 +326,14 @@ fn record_state(db: &Db, d: &Desired, sched: &Schedule, slots: &[Slot], event: &
     }
     let known = db.block_ids(event)?;
     for b in &d.blocks {
+        if b.want == crate::desired::BlockWant::None {
+            if let Some(id) = known.get(&b.key)
+                && !sched.personal_time.iter().any(|p| &p.personal_time_id == id)
+            {
+                db.remove_block_id(event, &b.key)?;
+            }
+            continue;
+        }
         if known.contains_key(&b.key) && slots.iter().all(|s| s.action.key.as_deref() != Some(&b.key)) {
             continue;
         }
