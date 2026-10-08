@@ -29,4 +29,5 @@ Earlier note — needs a human (deferred): real sign-in (`riv login`) against oa
 - [x] Demo transcript (docs/demo.md); screenshots/recording still optional
 - [ ] Tag v0.1.0 so `npx -y riv-reinvent` works (needs NPM_TOKEN)
 - [x] Hermetic tests merged; [ ] CI workflow still open
+- [x] Contest entry submitted (confirmed by the participant, 2026-10-08)
 - [ ] Eligibility attestations (Hero/Community Builder, registered, 18+, not an Amazon employee) — participant only
