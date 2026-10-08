@@ -80,15 +80,15 @@ What riv will **not** do: poll for seats / auto-reserve, apply without an approv
 
 ## Switching accounts
 
-`riv logout` revokes and deletes your tokens, but your **browser** can stay signed in to Builder ID and sign you straight back in as the same account (the authorization endpoint ignores `prompt=login`). To switch accounts:
+Your **browser** can stay signed in to Builder ID and sign you straight back in as an account you did not pick (the authorization endpoint ignores `prompt=login`). So `riv logout` also ends the browser sessions, and `riv login` shows **which account** you got (e.g. `al***@example.com`) and asks `Use this account? [Y/n]` before saving anything; answer `n` and it signs the browser out and lets you choose again. To switch accounts:
 
 ```sh
-riv logout --browser      # also ends the Builder ID and sign-in browser sessions
-riv login                 # sign in as the other account
+riv logout                # revokes the tokens AND ends the browser sessions (opens your browser)
+riv login                 # sign in; check the account shown, answer n to pick another
 # or in one step:
 riv login --switch-account
 ```
-If the redirect chain cannot run (no browser on this machine), sign out of the browser at https://profile.aws.amazon.com instead.
+`riv logout --local` only deletes the tokens (for machines without a browser); `riv login --yes` skips the question. If the redirect chain cannot run, sign out of the browser at https://profile.aws.amazon.com instead.
 
 ## Commands
 

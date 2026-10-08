@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-- `riv logout --browser` and `riv login --switch-account` end the browser sessions so another Builder ID account can sign in.
+- `riv logout` now also ends the Builder ID and sign-in browser sessions (`--local` keeps token-only); `riv login` shows which account you got and asks before saving (`--yes` skips); `riv login --switch-account` signs the browser out first. Masked emails show two characters (`al***@…`). Fixes being signed in silently as an account you did not choose.
 
 ## 0.1.1 — 2026-10-08
 - Fix: `riv sync` no longer deletes the stored catalog when the API answers with an empty list.

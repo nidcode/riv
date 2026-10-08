@@ -21,8 +21,22 @@ pub const ENTRIES: &[(&str, &str)] = &[
     ),
     ("Browser sessions cleared.", "ブラウザ側のセッションを終了しました。"),
     (
-        "Your browser may still be signed in to Builder ID. To switch accounts run `riv logout --browser` or `riv login --switch-account`.",
-        "ブラウザが Builder ID にサインインしたままの可能性があります。アカウントを切り替えるには `riv logout --browser` か `riv login --switch-account` を実行してください。",
+        "Your browser may still be signed in to Builder ID. To switch accounts run `riv logout` (without --local) or `riv login --switch-account`.",
+        "ブラウザが Builder ID にサインインしたままの可能性があります。アカウントを切り替えるには `--local` なしの `riv logout` か `riv login --switch-account` を実行してください。",
+    ),
+    (
+        "Could not end the browser sessions. Open https://profile.aws.amazon.com and sign out there.",
+        "ブラウザ側のセッションを終了できませんでした。https://profile.aws.amazon.com を開いて、そこでサインアウトしてください。",
+    ),
+    ("Signed in as {email}.", "{email} としてサインインしました。"),
+    ("Use this account? [Y/n]", "このアカウントを使いますか？ [Y/n]"),
+    (
+        "Not this account: signing out of the browser so you can choose another one.",
+        "別のアカウントです: ブラウザをサインアウトするので、もう一度選んでください。",
+    ),
+    (
+        "Too many attempts. Run `riv login --switch-account` when you are ready.",
+        "試行回数が多すぎます。準備ができたら `riv login --switch-account` を実行してください。",
     ),
     ("1/3 What do you want from re:Invent this year (purpose)?", "1/3 今年の re:Invent で何を得たいですか（目的）？"),
     ("2/3 Which topics/services interest you?", "2/3 興味のあるトピック・サービスは？"),
