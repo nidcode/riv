@@ -15,6 +15,15 @@ pub const ENTRIES: &[(&str, &str)] = &[
     ("Open this URL in your browser to sign in:", "ブラウザで次の URL を開いてサインインしてください:"),
     ("Nothing is scheduled.", "予定はありません。"),
     ("unknown", "不明"),
+    (
+        "Opening the sign-out page; if the browser does not open, visit:",
+        "サインアウトのページを開きます。ブラウザが開かない場合は次の URL を開いてください:",
+    ),
+    ("Browser sessions cleared.", "ブラウザ側のセッションを終了しました。"),
+    (
+        "Your browser may still be signed in to Builder ID. To switch accounts run `riv logout --browser` or `riv login --switch-account`.",
+        "ブラウザが Builder ID にサインインしたままの可能性があります。アカウントを切り替えるには `riv logout --browser` か `riv login --switch-account` を実行してください。",
+    ),
     ("1/3 What do you want from re:Invent this year (purpose)?", "1/3 今年の re:Invent で何を得たいですか（目的）？"),
     ("2/3 Which topics/services interest you?", "2/3 興味のあるトピック・サービスは？"),
     (

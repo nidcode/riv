@@ -12,6 +12,25 @@ pub const SCOPE: &str = "openid email events/access";
 pub const PORTS: std::ops::RangeInclusive<u16> = 8484..=8489;
 pub const DEFAULT_OAUTH_BASE: &str = "https://oauth.awsevents.com";
 
+pub const DEFAULT_IDP_BASE: &str = "https://idp.awsevents.com";
+
+pub fn idp_base() -> String {
+    std::env::var("RIV_IDP_BASE").unwrap_or_else(|_| DEFAULT_IDP_BASE.into()).trim_end_matches('/').to_string()
+}
+
+fn pct(s: &str) -> String {
+    url::form_urlencoded::byte_serialize(s.as_bytes()).collect()
+}
+
+/// The sign-out URL from the AWS Events docs (auth-signing-out): the Builder ID sign-out endpoint comes first and
+/// redirects to the sign-in domain's logout, which returns to `http://localhost:{port}/logout`. One navigation clears
+/// both browser sessions. (`prompt=login` / `max_age=0` are dropped by the authorization endpoint, so re-auth cannot
+/// be forced any other way.)
+pub fn logout_url(oauth_base: &str, idp_base: &str, port: u16) -> String {
+    let inner = format!("{oauth_base}/logout?client_id={CLIENT_ID}&logout_uri=http://localhost:{port}/logout");
+    format!("{idp_base}/oidc/logout?redirect_uri={}", pct(&inner))
+}
+
 pub fn oauth_base() -> String {
     std::env::var("RIV_OAUTH_BASE").unwrap_or_else(|_| DEFAULT_OAUTH_BASE.into()).trim_end_matches('/').to_string()
 }
@@ -186,9 +205,70 @@ pub async fn login(base: &str, announce: impl Fn(&str)) -> Result<Credentials> {
     Ok(to_credentials(r, None))
 }
 
+/// End the Builder ID and brokering browser sessions: open the sign-out URL and wait for the redirect back to
+/// `http://localhost:{port}/logout`. `announce` receives the URL to show the user.
+pub async fn browser_logout(oauth_base: &str, idp_base: &str, announce: impl Fn(&str)) -> Result<()> {
+    use axum::{Router, response::Html, routing::get};
+
+    let (listener, port) = bind_callback_port().await?;
+    let (tx, rx) = tokio::sync::oneshot::channel::<()>();
+    let slot = Arc::new(Mutex::new(Some(tx)));
+    let app = Router::new().route(
+        "/logout",
+        get(move || {
+            let slot = slot.clone();
+            async move {
+                if let Some(tx) = slot.lock().unwrap_or_else(|p| p.into_inner()).take() {
+                    let _ = tx.send(());
+                }
+                Html("Signed out of the browser sessions. You can close this tab and return to riv.")
+            }
+        }),
+    );
+    let server = tokio::spawn(async move { axum::serve(listener, app).await });
+    let url = logout_url(oauth_base, idp_base, port);
+    announce(&url);
+    open_browser(&url);
+    let done = tokio::time::timeout(Duration::from_secs(120), rx).await;
+    server.abort();
+    match done {
+        Ok(Ok(())) => Ok(()),
+        _ => Err(RivError::general("the browser did not come back from the sign-out page in time")),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn logout_url_follows_the_documented_chain() {
+        let u = logout_url("https://oauth.awsevents.com", "https://idp.awsevents.com", 8484);
+        let (head, redirect) = u.split_once("?redirect_uri=").expect("redirect_uri");
+        assert_eq!(head, "https://idp.awsevents.com/oidc/logout");
+        let inner = url::form_urlencoded::parse(format!("x={redirect}").as_bytes()).next().expect("pair").1.to_string();
+        assert_eq!(
+            inner,
+            "https://oauth.awsevents.com/logout?client_id=7vmom55m1qstvq8i71ph127bfq&logout_uri=http://localhost:8484/logout"
+        );
+    }
+
+    #[tokio::test]
+    async fn browser_logout_waits_for_the_redirect_back() {
+        // Play the browser: follow the chain by calling the logout_uri that is inside the announced URL.
+        let result = browser_logout("https://oauth.example", "https://idp.example", |u| {
+            let (_, redirect) = u.split_once("?redirect_uri=").expect("redirect_uri");
+            let inner =
+                url::form_urlencoded::parse(format!("x={redirect}").as_bytes()).next().expect("pair").1.to_string();
+            let back = inner.split_once("logout_uri=").expect("logout_uri").1.to_string();
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_millis(200)).await;
+                let _ = reqwest::get(back).await;
+            });
+        })
+        .await;
+        assert!(result.is_ok());
+    }
 
     #[test]
     fn authorize_url_has_required_params() {

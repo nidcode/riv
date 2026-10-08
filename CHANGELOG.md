@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- `riv logout --browser` and `riv login --switch-account` end the browser sessions so another Builder ID account can sign in.
+
 ## 0.1.1 — 2026-10-08
 - Fix: `riv sync` no longer deletes the stored catalog when the API answers with an empty list.
 - `riv bench search-quality --generate N`, CI workflow, `show --live`, personal-time delete (`want: none`).

@@ -74,3 +74,6 @@ Personal-time blocks take `want: present|none` (default present). `none` deletes
 
 ## D8-2 Sync never wipes the catalog on an empty answer
 On 2026-10-08 the real ListSessions returned 200 with `items: []`, `totalCount: 0` for reinvent2026 (service side; GetSchedule still worked). `sync` read that as "the catalog is empty" and deleted all 2,195 stored sessions. Now an empty result when sessions are already stored aborts the sync (the transaction is rolled back) with an explanatory error. A first sync into an empty database is still allowed. Mock scenario `empty-catalog` reproduces it.
+
+## D8-3 Account switching needs the browser sign-out chain
+The docs (auth-signing-out) say a complete sign-out clears tokens, the Builder ID browser session and the brokering session, and that `prompt=login`/`max_age=0` are dropped, so re-auth cannot be forced. `riv logout` previously printed only the bare idp URL, so the brokering session stayed and the browser silently re-signed the same user. Added `riv logout --browser` and `riv login --switch-account`: the documented chain `idp /oidc/logout?redirect_uri=<oauth /logout?client_id&logout_uri=http://localhost:{port}/logout>` with a local `/logout` listener on ports 8484-8489. Offered separately because ending the Builder ID session is not always wanted.

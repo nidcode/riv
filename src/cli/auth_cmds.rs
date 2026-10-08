@@ -2,7 +2,21 @@ use crate::auth::{FileTokenStore, TokenStore, jwt, oauth};
 use crate::error::{Result, RivError};
 use crate::i18n::t;
 
-pub async fn login() -> Result<i32> {
+/// Open the documented sign-out chain and wait for the browser to come back.
+async fn browser_sign_out() -> Result<()> {
+    oauth::browser_logout(&oauth::oauth_base(), &oauth::idp_base(), |url| {
+        println!("{}", t("Opening the sign-out page; if the browser does not open, visit:"));
+        println!("{url}");
+    })
+    .await?;
+    println!("{}", t("Browser sessions cleared."));
+    Ok(())
+}
+
+pub async fn login(switch_account: bool) -> Result<i32> {
+    if switch_account {
+        browser_sign_out().await?;
+    }
     let creds = oauth::login(&oauth::oauth_base(), |url| {
         println!("{}", t("Open this URL in your browser to sign in:"));
         println!("{url}");
@@ -13,7 +27,7 @@ pub async fn login() -> Result<i32> {
     Ok(0)
 }
 
-pub async fn logout() -> Result<i32> {
+pub async fn logout(browser: bool) -> Result<i32> {
     let store = FileTokenStore::default_location();
     if let Some(c) = store.load()?
         && let Some(rt) = c.refresh_token
@@ -23,7 +37,17 @@ pub async fn logout() -> Result<i32> {
     }
     store.clear()?;
     println!("{}", t("Signed out."));
-    println!("To end your Builder ID session too, visit: https://idp.awsevents.com/oidc/logout");
+    if browser {
+        browser_sign_out().await?;
+    } else {
+        // Without this the browser may sign you straight back in as the same account.
+        println!(
+            "{}",
+            t(
+                "Your browser may still be signed in to Builder ID. To switch accounts run `riv logout --browser` or `riv login --switch-account`."
+            )
+        );
+    }
     Ok(0)
 }
 
