@@ -27,7 +27,8 @@ Earlier note — needs a human (deferred): real sign-in (`riv login`) against oa
 - [x] Real benchmarks: first-run, warm, protocol against the real API (bench/results/2026-10-08.md)
 - [x] API surface: personal-time delete (`want: none`), GetSession (`show --live`), remote MCP measured
 - [x] Demo transcript (docs/demo.md); screenshots/recording still optional
-- [ ] Tag v0.1.0 so `npx -y riv-reinvent` works (needs NPM_TOKEN)
+- [x] Tag v0.1.0 released 2026-10-08: GitHub Releases (5 targets + shell/PowerShell installers) and npm `riv-reinvent@0.1.0` (first publish by hand with 2FA OTP; the CI `publish-npm` job got 403 because the token lacked publish rights)
+- [ ] npm Trusted Publishing for the next release (so CI can publish without a token)
 - [x] Hermetic tests merged; [ ] CI workflow still open
 - [x] Contest entry submitted (confirmed by the participant, 2026-10-08)
 - [ ] Eligibility attestations (Hero/Community Builder, registered, 18+, not an Amazon employee) — participant only

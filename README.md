@@ -11,7 +11,7 @@ Demo of a replacement and the seat-loss guard: [docs/demo.md](docs/demo.md)
 
 ## Install
 
-Pick one (replace `nidcode` after the first release; see [docs/progress.md](docs/progress.md)):
+Pick one:
 
 ```sh
 # 1. shell installer (macOS / Linux)
