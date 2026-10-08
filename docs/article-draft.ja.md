@@ -1,14 +1,12 @@
-# re:Invent のアジェンダを「コード」で管理する riv を作った
+# re:Invent のセッションを「コード」で管理する「Riv」
 
-re:Invent の予定を Markdown に書いて、差分を見てから反映するツール、riv を作りました。取れた席を失わずに予定を組み替えられることを一番の目的にしています。
+re:Invent の予定を Markdown に書いて、差分を見てから反映するツール、Riv を作りました。取れた席を失わずに予定を組み替えられることを一番の目的にしています。
 
-リポジトリ: https://github.com/nidcode/riv
+## 解決したい課題
 
-## 作った理由
-
-セッションは2,000件を超えます。毎日の予定は、行きたい話を探す、重なりに気づく、組み替える、の繰り返しになります。ここで一番怖いのは、取れている席を自分の操作で失うことです。席は一度手放すと戻らないことがあります。
-
-AI アシスタントに任せる手もありますが、カタログ全体がチャットに流れ込むのは避けたいと思いました。API には検索機能がないので、全件を取って手元で絞る必要があります。
+- **席を失うリスク:** 予約した席は、一度手放すと戻らないことがあります。予定を組み替えるたびに、取れている席を自分の操作で失う危険があります。
+- **探して比べる手間:** セッションは2,000件を超えます。行きたい話を探し、時間の重なりに気づき、組み替える作業を、毎日繰り返すことになります。
+- **AI に任せにくい:** API には検索機能がないので、全件を取って手元で絞る必要があります。AI アシスタントに任せると、カタログ全体がチャットに流れ込みます。
 
 ## 仕組み
 
@@ -59,11 +57,29 @@ Kiro では Power として入れられ、Kiro Crew に登録すればスマホ�
 
 ## 使い方
 
+サインインなしで、模擬サーバーで試せます。
+
 ```
-npx -y riv-reinvent --help      # リリース後
-riv mock &                      # サインイン不要のお試し
-riv sync && riv search agents
-riv init && riv plan
+riv mock &                       # 模擬の API を起動
+export RIV_API_BASE=http://localhost:8787 RIV_TOKEN=mock-token RIV_EVENT=demo-reinvent
+riv sync                         # カタログを取得
+riv search agents bedrock        # 候補を探す（左端の列が sessionId）
+riv init                         # 目的・興味・制約を答えて spec を作る
 ```
+
+`.kiro/specs/reinvent-2026/design.md` の末尾の YAML に、欲しいセッションを書きます。
+
+```yaml
+sessions:
+  - {id: "mock-0001", want: reserved}
+```
+
+```
+riv plan                         # 差分を確認（まだ何も書き込まない）
+riv apply --plan <planID>        # 差分どおりに反映（30分以内）
+riv verify                       # spec と実際のスケジュールを照合
+```
+
+本物の API では、先に `riv login` でサインインして、`RIV_*` の設定を外します。予約が閉じている間は、`want: favorite` で試せます。
 
 詳しくは README を見てください。先行する reinvent26-planner、re:Plan 2026、reinvent-scout、reinvent2026-mcp から多くを教わりました。
