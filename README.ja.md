@@ -13,7 +13,7 @@ re:Invent 2026 に登録している AWS Heroes / Community Builders、特に Ki
 
 ## インストール
 
-いずれか 1 つを選んでください（最初のリリース後に `nidcode` を置き換えてください。[docs/progress.md](docs/progress.md) を参照）。
+いずれか 1 つを選んでください。
 
 ```sh
 # 1. shell installer (macOS / Linux)
