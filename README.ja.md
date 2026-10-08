@@ -8,6 +8,9 @@ re:Invent の予定を [Kiro](https://kiro.dev) の spec（Markdown）として�
 
 re:Invent 2026 に登録している AWS Heroes / Community Builders、特に Kiro ユーザー向けです。riv は**あなた自身のマシン上**で動作します（API はトークンを `api.awsevents.com` 以外へ送ることを禁じているため、ホスト型の部分はありません）。
 
+記事（AWS Builder Center）: https://builder.aws.com/project/3KOnbvKWkMlzzcInr6wKnZsJV0x/managing-reinvent-sessions-as-code-riv  
+置換と席喪失ガードのデモ: [docs/demo.md](docs/demo.md)
+
 ## インストール
 
 いずれか 1 つを選んでください（最初のリリース後に `nidcode` を置き換えてください。[docs/progress.md](docs/progress.md) を参照）。

@@ -6,6 +6,9 @@ Declare your re:Invent agenda as a [Kiro](https://kiro.dev) spec (Markdown), rev
 
 For AWS Heroes / Community Builders registered for re:Invent 2026, mostly Kiro users. riv runs **on your own machine** (the API forbids sending your token anywhere but `api.awsevents.com`, so there is no hosted part). Japanese: [README.ja.md](README.ja.md).
 
+Article (AWS Builder Center): https://builder.aws.com/project/3KOnbvKWkMlzzcInr6wKnZsJV0x/managing-reinvent-sessions-as-code-riv  
+Demo of a replacement and the seat-loss guard: [docs/demo.md](docs/demo.md)
+
 ## Install
 
 Pick one (replace `nidcode` after the first release; see [docs/progress.md](docs/progress.md)):
