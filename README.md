@@ -93,7 +93,6 @@ Environment: `RIV_API_BASE` (default `https://api.awsevents.com`), `RIV_TOKEN` (
 - Search is FTS5 without Japanese morphological analysis; Japanese recall is limited.
 - `riv_apply` over MCP relies on the host's tool-approval UI; keep it on manual approval (never `/yolo`).
 - Windows credentials are a plain file under your profile.
-- Personal-time update/create is supported; delete of removed blocks is not (stretch).
 
 ## Development
 
