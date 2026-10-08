@@ -30,7 +30,7 @@ Earlier note — needs a human (deferred): real sign-in (`riv login`) against oa
 - [x] Tag v0.1.0 released 2026-10-08: GitHub Releases (5 targets + shell/PowerShell installers) and npm `riv-reinvent@0.1.0` (first publish by hand with 2FA OTP; the CI `publish-npm` job got 403 because the token lacked publish rights)
 - [x] Search-quality numbers without a hand-written fixture (`--generate 30`, bench/results/2026-10-08.md)
 - [x] CI workflow added (.github/workflows/ci.yml)
-- [ ] npm Trusted Publishing for the next release (so CI can publish without a token)
+- [~] npm Trusted Publishing: workflow changed (PR), npmjs.com trusted-publisher setting + a release to verify are still open
 - [x] Hermetic tests merged; [ ] CI workflow still open
 - [x] Contest entry submitted (confirmed by the participant, 2026-10-08)
 - [ ] Eligibility attestations (Hero/Community Builder, registered, 18+, not an Amazon employee) — participant only
