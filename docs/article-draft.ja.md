@@ -59,11 +59,29 @@ Kiro では Power として入れられ、Kiro Crew に登録すればスマホ�
 
 ## 使い方
 
+サインインなしで、模擬サーバーで試せます。
+
 ```
-npx -y riv-reinvent --help      # リリース後
-riv mock &                      # サインイン不要のお試し
-riv sync && riv search agents
-riv init && riv plan
+riv mock &                       # 模擬の API を起動
+export RIV_API_BASE=http://localhost:8787 RIV_TOKEN=mock-token RIV_EVENT=demo-reinvent
+riv sync                         # カタログを取得
+riv search agents bedrock        # 候補を探す（左端の列が sessionId）
+riv init                         # 目的・興味・制約を答えて spec を作る
 ```
+
+`.kiro/specs/reinvent-2026/design.md` の末尾の YAML に、欲しいセッションを書きます。
+
+```yaml
+sessions:
+  - {id: "mock-0001", want: reserved}
+```
+
+```
+riv plan                         # 差分を確認（まだ何も書き込まない）
+riv apply --plan <planID>        # 差分どおりに反映（30分以内）
+riv verify                       # spec と実際のスケジュールを照合
+```
+
+本物の API では、先に `riv login` でサインインして、`RIV_*` の設定を外します。予約が閉じている間は、`want: favorite` で試せます。
 
 詳しくは README を見てください。先行する reinvent26-planner、re:Plan 2026、reinvent-scout、reinvent2026-mcp から多くを教わりました。
