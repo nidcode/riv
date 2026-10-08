@@ -20,6 +20,7 @@ struct Fixture {
 }
 
 async fn fixture() -> Fixture {
+    riv::i18n::set_override(Some(riv::i18n::Lang::En));
     let server = MockServer::start(0, Scenario::default()).await.expect("mock");
     let api =
         Arc::new(HttpApi::new(server.base_url.clone(), Arc::new(StaticToken(MOCK_TOKEN.into()))).with_sleep_scale(0.0));

@@ -225,6 +225,7 @@ impl Tools {
                 accept_seat_loss,
                 now: chrono::Utc::now(),
                 account: &account,
+                lang: crate::i18n::lang(),
             };
             let desired = read_desired(&spec)?;
             let catalog = DbCatalog { db: &db, event_id: desired.event.clone(), tz: event_tz_of(&db, &desired) };
