@@ -18,7 +18,24 @@ pub fn resolve_lang(env_riv: Option<&str>, config: Option<&str>, os: Option<&str
     }
 }
 
+static OVERRIDE: std::sync::atomic::AtomicU8 = std::sync::atomic::AtomicU8::new(0);
+
+/// Pin the language for this process (tests use it so results never depend on the user's settings).
+pub fn set_override(lang: Option<Lang>) {
+    let v = match lang {
+        None => 0,
+        Some(Lang::En) => 1,
+        Some(Lang::Ja) => 2,
+    };
+    OVERRIDE.store(v, std::sync::atomic::Ordering::SeqCst);
+}
+
 pub fn lang() -> Lang {
+    match OVERRIDE.load(std::sync::atomic::Ordering::SeqCst) {
+        1 => return Lang::En,
+        2 => return Lang::Ja,
+        _ => {}
+    }
     let os = std::env::var("LC_ALL").ok().filter(|v| !v.is_empty()).or_else(|| std::env::var("LANG").ok());
     resolve_lang(
         std::env::var("RIV_LANG").ok().as_deref(),

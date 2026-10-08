@@ -19,3 +19,14 @@ Remaining / needs a human (deferred):
 - Stretch (Phase 7): personal-time delete of removed blocks.
 
 Earlier note — needs a human (deferred): real sign-in (`riv login`) against oauth.awsevents.com, Kiro IDE import check, npm/crates name availability, GitHub repo URL / author in plugin.json, dist release tag.
+
+## Submission checklist (Catalog API Builder Challenge, deadline 2026-11-06 23:59 PT)
+- [ ] Article published on builder.aws.com (what / why / how the API + MCP are used) — 25% of the score
+- [ ] Builder Center project page created and linked to the repo
+- [ ] README: add an explicit "Requirements" section (Rust stable for source builds, Node only for `npx`, SQLite is bundled, registered Builder ID)
+- [ ] Real benchmarks: `riv bench first-run`, `warm`, `protocol` against the real API (not only the mock)
+- [ ] API surface: use more of the 12 operations (personal-time delete in plan; GetSession in `show`/`prep`), and measure the remote MCP server
+- [ ] Demo material (screenshots or a short recording of `riv plan` / `apply`)
+- [ ] Tag v0.1.0 so `npx -y riv-reinvent` works (needs NPM_TOKEN)
+- [ ] Merge PR #1 (hermetic tests); consider a CI workflow
+- [ ] Eligibility attestations (Hero/Community Builder, registered, 18+, not an Amazon employee) — participant only

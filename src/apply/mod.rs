@@ -106,6 +106,8 @@ pub struct ApplyRequest<'a> {
     pub accept_seat_loss: bool,
     pub now: DateTime<Utc>,
     pub account: &'a str,
+    /// Language for generated text (tasks.md). Passed in so output never depends on ambient settings.
+    pub lang: crate::i18n::Lang,
 }
 
 fn slots_of(plan: &Plan) -> Vec<Slot> {
@@ -259,7 +261,10 @@ pub async fn apply(
     if let Some(dir) = req.spec_path.parent()
         && dir.is_dir()
     {
-        let _ = std::fs::write(dir.join("tasks.md"), render_tasks(&desired, &final_schedule, &catalog, &outcomes));
+        let _ = std::fs::write(
+            dir.join("tasks.md"),
+            render_tasks(&desired, &final_schedule, &catalog, &outcomes, req.lang),
+        );
     }
     let summary = format!(
         "{} done, {} already, {} failed, {} unknown, {} skipped",

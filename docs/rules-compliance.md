@@ -1,6 +1,23 @@
 # Rules compliance
 
-> Status: written from the project brief and the AWS Events API documentation (quotas, errors, token handling). **TODO(human):** re-read the official hackathon rules and tick each line below before submitting.
+> Status: checked against the official "re:Invent Catalog API Builder Challenge" page and rules (updated 2026-09-24) on 2026-10-08. Items that only the participant can attest are marked **(you)**.
+
+## Contest rules at a glance
+- Period: 2026-09-24 10:00 PT to **2026-11-06 23:59 PT** (submission deadline). Winners by 2026-11-27; top 3 featured at re:Invent (Nov 29 - Dec 4).
+- Submission needs **all** of: (1) a public code repository with working code and a README covering setup, dependencies and how to run; (2) an article published on **builder.aws.com** (a published AWS Builder Center project) explaining what was built, why, and how the API and/or MCP server is used; (3) original work by the participant.
+- Eligibility **(you)**: current AWS Heroes or Community Builders member, registered for re:Invent 2026, 18+, not resident in an excluded country/region, not an Amazon/AWS employee or close relative/household member; one submission per person.
+- Judging (25% each): creativity and novelty of the integration; usefulness to re:Invent attendees; technical depth and use of the API surface; quality of the Builder Center project.
+- Warranties: the submission must not facilitate illegal acts, infringe others' IP, be offensive/defamatory, or harm others or AWS's business or reputation.
+
+| Requirement | Status |
+|---|---|
+| Public repo with working code | done: https://github.com/nidcode/riv (Apache-2.0) |
+| README with setup, dependencies, how to run | done (install, quick start, real API); add an explicit "Requirements" list (see docs/progress.md) |
+| Article on builder.aws.com | **open** — outline only (`docs/article-outline.md`) |
+| Original work | done; prior projects are credited in the article, not copied |
+| Built in the contest period | done: first commit 2026-10-05 |
+| Eligibility attestations | **(you)** |
+
 
 ## Forbidden by the rules / API terms (riv complies)
 

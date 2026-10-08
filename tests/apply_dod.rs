@@ -27,6 +27,7 @@ struct Env {
 }
 
 async fn env(scenario: &str) -> Env {
+    riv::i18n::set_override(Some(riv::i18n::Lang::En));
     let server = MockServer::start(0, Scenario::parse(scenario)).await.expect("mock");
     let api = HttpApi::new(server.base_url.clone(), Arc::new(StaticToken(MOCK_TOKEN.into()))).with_sleep_scale(0.0);
     let db = Db::open_memory().expect("db");
@@ -107,6 +108,7 @@ async fn run_apply(e: &Env, p: &Plan, flag: bool) -> Result<ApplyReport, RivErro
         accept_seat_loss: flag,
         now: Utc::now(),
         account: ACCT,
+        lang: riv::i18n::Lang::En,
     };
     apply(&e.api, &e.db, &e.plans, &req, &|_| true).await
 }
@@ -119,6 +121,7 @@ async fn run_resume(e: &Env, run: &str) -> Result<ApplyReport, RivError> {
         accept_seat_loss: false,
         now: Utc::now(),
         account: ACCT,
+        lang: riv::i18n::Lang::En,
     };
     apply(&e.api, &e.db, &e.plans, &req, &|_| true).await
 }
@@ -325,6 +328,7 @@ async fn stale_plans_are_refused() {
         accept_seat_loss: false,
         now: Utc::now() + Duration::minutes(31),
         account: ACCT,
+        lang: riv::i18n::Lang::En,
     };
     let err = apply(&e2.api, &e2.db, &e2.plans, &req, &|_| true).await.expect_err("expired");
     assert!(err.message.contains("expired"));
@@ -350,6 +354,7 @@ async fn declined_confirmation_writes_nothing() {
         accept_seat_loss: false,
         now: Utc::now(),
         account: ACCT,
+        lang: riv::i18n::Lang::En,
     };
     let err = apply(&e.api, &e.db, &e.plans, &req, &|_| false).await.expect_err("declined");
     assert_eq!(err.code, ErrorCode::PlanRejected);
@@ -369,6 +374,7 @@ async fn account_mismatch_is_refused() {
         accept_seat_loss: false,
         now: Utc::now(),
         account: "someone-else",
+        lang: riv::i18n::Lang::En,
     };
     assert_eq!(apply(&e.api, &e.db, &e.plans, &req, &|_| true).await.expect_err("acct").code, ErrorCode::PlanRejected);
 }

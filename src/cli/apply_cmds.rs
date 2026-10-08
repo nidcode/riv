@@ -29,6 +29,7 @@ pub async fn run_apply(a: ApplyArgs) -> Result<i32> {
         accept_seat_loss: a.accept_seat_loss,
         now: chrono::Utc::now(),
         account: &account,
+        lang: crate::i18n::lang(),
     };
     let interactive = std::io::stdin().is_terminal() && !a.yes;
     let desired = read_desired(&spec)?;
