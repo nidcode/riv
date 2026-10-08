@@ -185,6 +185,9 @@ pub enum Command {
         runs: usize,
         #[arg(long)]
         fixture: Option<std::path::PathBuf>,
+        /// search-quality: build N questions from the synced catalog instead of reading a fixture.
+        #[arg(long)]
+        generate: Option<usize>,
         #[arg(long, default_value = "bench/results")]
         out: std::path::PathBuf,
     },
@@ -248,8 +251,8 @@ pub async fn run(cli: Cli) -> Result<i32> {
         Command::Config { action } => config_cmd::run(action),
         Command::Doctor { event, json } => doctor::run(&event, json).await,
         Command::Mcp => crate::mcp::serve_stdio().await.map(|()| 0),
-        Command::Bench { name, event, mock, runs, fixture, out } => {
-            bench_cmd::run(&name, event, mock, runs, fixture, out).await
+        Command::Bench { name, event, mock, runs, fixture, generate, out } => {
+            bench_cmd::run(&name, event, mock, runs, fixture, generate, out).await
         }
         Command::Mock { port, scenario } => mock_cmd::run(port, scenario).await,
     }

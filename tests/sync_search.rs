@@ -102,3 +102,21 @@ async fn search_and_filters() {
         .expect("nl");
     assert!(!nl.is_empty());
 }
+
+#[tokio::test]
+async fn generated_questions_are_deterministic_single_target_and_avoid_the_title() {
+    let (_s, api) = setup().await;
+    let db = Db::open_memory().expect("db");
+    sync(&api, &db, &opts(AbstractsMode::Always), &|_| {}).await.expect("sync");
+    let a = riv::bench::generate_questions(&db, "demo-reinvent", 10).expect("gen");
+    let b = riv::bench::generate_questions(&db, "demo-reinvent", 10).expect("gen");
+    assert_eq!(a.len(), 10);
+    assert_eq!(a.iter().map(|q| &q.query).collect::<Vec<_>>(), b.iter().map(|q| &q.query).collect::<Vec<_>>());
+    for q in &a {
+        assert_eq!(q.expected.len(), 1);
+        let s = db.find_sessions("demo-reinvent", &q.expected[0]).expect("find").remove(0).session;
+        let title = s.title.to_lowercase();
+        // the first words are abstract words that are not part of the title
+        assert!(q.query.split_whitespace().take(1).all(|w| !title.contains(w)), "{} / {}", q.query, s.title);
+    }
+}

@@ -18,6 +18,8 @@ pub struct BenchEnv {
     pub mock: bool,
     pub runs: usize,
     pub fixture: Option<std::path::PathBuf>,
+    /// `--generate N`: build N questions from the synced catalog instead of reading a fixture.
+    pub generate: Option<usize>,
     /// Keeps the in-process mock alive for the bench's duration.
     pub _mock_server: Option<crate::mock::MockServer>,
 }
@@ -33,6 +35,7 @@ impl BenchEnv {
             mock: true,
             runs,
             fixture,
+            generate: None,
             _mock_server: Some(s),
         })
     }
@@ -253,6 +256,9 @@ fn recall_at_10(db: &Db, event: &str, qs: &[Question]) -> Result<f64> {
 
 /// recall@10 over a fixture of questions, with and without abstracts.
 pub async fn search_quality(env: &BenchEnv) -> Result<Report> {
+    if let Some(n) = env.generate {
+        return search_quality_generated(env, n).await;
+    }
     let path = env.fixture.clone().unwrap_or_else(|| {
         std::path::PathBuf::from(if env.mock {
             "bench/fixtures/queries.mock.json"
@@ -290,6 +296,90 @@ pub async fn search_quality(env: &BenchEnv) -> Result<Report> {
             "{} questions from {}; per question, recall@10 = fraction of its expected sessionIds found in the top 10, averaged. On the mock catalog this shows the harness works, not real-world quality.",
             qs.len(),
             path.display()
+        ),
+        table: rows,
+        raw: raw.into(),
+    })
+}
+
+const GEN_STOPWORDS: &[&str] = &[
+    "about", "their", "these", "those", "which", "while", "where", "using", "should", "would", "other", "build",
+    "learn", "session", "sessions", "will", "from", "with", "that", "this", "your", "have", "into", "more", "than",
+    "what", "when",
+];
+
+/// N deterministic questions from sessions that have an abstract and a service. The query uses words that appear in the
+/// abstract but not in the title, so it only works if the abstract is indexed. These are synthetic questions: they show
+/// what abstracts add to retrieval, not how real attendees search.
+pub fn generate_questions(db: &Db, event: &str, n: usize) -> Result<Vec<Question>> {
+    let mut all = db.all_sessions(event)?;
+    all.sort_by(|a, b| a.session.session_id.cmp(&b.session.session_id));
+    let usable: Vec<_> = all
+        .into_iter()
+        .filter(|s| s.session.abstract_.as_deref().is_some_and(|a| a.len() > 80) && !s.session.services.is_empty())
+        .collect();
+    if usable.is_empty() || n == 0 {
+        return Ok(vec![]);
+    }
+    let step = (usable.len() / n).max(1);
+    let mut out = Vec::new();
+    for s in usable.iter().step_by(step).take(n) {
+        let title: std::collections::HashSet<String> =
+            s.session.title.split(|c: char| !c.is_alphanumeric()).map(str::to_lowercase).collect();
+        let mut words: Vec<String> = Vec::new();
+        for w in s.session.abstract_.as_deref().unwrap_or("").split(|c: char| !c.is_alphanumeric()) {
+            let w = w.to_lowercase();
+            if w.len() >= 6 && !title.contains(&w) && !GEN_STOPWORDS.contains(&w.as_str()) && !words.contains(&w) {
+                words.push(w);
+            }
+            if words.len() == 4 {
+                break;
+            }
+        }
+        if words.is_empty() {
+            continue;
+        }
+        out.push(Question {
+            query: format!("{} {}", words.join(" "), s.session.services[0].to_lowercase()),
+            expected: vec![s.session.session_id.clone()],
+            level: None,
+        });
+    }
+    Ok(out)
+}
+
+async fn search_quality_generated(env: &BenchEnv, n: usize) -> Result<Report> {
+    let api = env.api();
+    let mut dbs = Vec::new();
+    for (label, mode) in [("without abstracts", AbstractsMode::Never), ("with abstracts", AbstractsMode::Always)] {
+        let (db, dir) = temp_db("quality-gen").await?;
+        crate::sync::sync(
+            &api,
+            &db,
+            &SyncOptions { event_id: env.event.clone(), locale: None, abstracts: mode },
+            &|_| {},
+        )
+        .await?;
+        dbs.push((label, db, dir));
+    }
+    let qs = generate_questions(&dbs[1].1, &env.event, n)?;
+    if qs.is_empty() {
+        return Err(RivError::general("no session with an abstract and a service to build questions from"));
+    }
+    let mut rows = String::from("| index | recall@10 | questions |\n|---|---|---|\n");
+    let mut raw = serde_json::Map::new();
+    for (label, db, _) in &dbs {
+        let r = recall_at_10(db, &env.event, &qs)?;
+        rows.push_str(&format!("| {label} | {r:.3} | {} |\n", qs.len()));
+        raw.insert((*label).into(), serde_json::json!(r));
+    }
+    // The generated queries are not stored: they are derived from catalog text.
+    raw.insert("questions".into(), serde_json::json!(qs.len()));
+    Ok(Report {
+        name: "search-quality (generated questions)",
+        procedure: format!(
+            "{} questions generated from the synced catalog: for each sampled session, 4 words from its abstract that are not in its title plus its first service; expected = that session. Synthetic, so it measures what indexing abstracts adds, not real attendee queries.",
+            qs.len()
         ),
         table: rows,
         raw: raw.into(),
