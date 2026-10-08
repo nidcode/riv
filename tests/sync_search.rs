@@ -120,3 +120,25 @@ async fn generated_questions_are_deterministic_single_target_and_avoid_the_title
         assert!(q.query.split_whitespace().take(1).all(|w| !title.contains(w)), "{} / {}", q.query, s.title);
     }
 }
+
+#[tokio::test]
+async fn an_empty_answer_never_wipes_the_local_catalog() {
+    let (s, api) = setup().await;
+    let db = Db::open_memory().expect("db");
+    sync(&api, &db, &opts(AbstractsMode::Auto), &|_| {}).await.expect("first sync");
+    assert_eq!(db.session_count("demo-reinvent").expect("count"), 120);
+    s.state.set_scenario(Scenario::parse("empty-catalog"));
+    let err = sync(&api, &db, &opts(AbstractsMode::Auto), &|_| {}).await.expect_err("must refuse");
+    assert!(err.message.contains("local catalog was kept"), "{}", err.message);
+    assert_eq!(db.session_count("demo-reinvent").expect("count"), 120, "nothing was deleted");
+    // search still works
+    assert!(
+        !db.search("demo-reinvent", &SearchQuery { text: "bedrock".into(), limit: 3, ..Default::default() }, &[])
+            .expect("search")
+            .is_empty()
+    );
+    // a first sync into an empty database with an empty answer is allowed (nothing to lose)
+    let fresh = Db::open_memory().expect("db");
+    let r = sync(&api, &fresh, &opts(AbstractsMode::Auto), &|_| {}).await.expect("fresh sync");
+    assert_eq!(r.sessions, 0);
+}

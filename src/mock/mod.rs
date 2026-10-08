@@ -33,6 +33,8 @@ pub struct Scenario {
     pub drop_after_write: u32,
     /// Answer the next N writes with an HTML 500 and do NOT apply them.
     pub edge_html_500: u32,
+    /// ListSessions answers 200 with no items and totalCount 0 (a service-side hiccup).
+    pub empty_catalog: bool,
 }
 
 impl Scenario {
@@ -49,6 +51,7 @@ impl Scenario {
                     }
                 }
                 "clash" => sc.clash = true,
+                "empty-catalog" => sc.empty_catalog = true,
                 "drop-after-write" => sc.drop_after_write = arg.and_then(|a| a.parse().ok()).unwrap_or(1),
                 "edge-html-500" => sc.edge_html_500 = arg.and_then(|a| a.parse().ok()).unwrap_or(1),
                 _ => {}
@@ -302,6 +305,9 @@ async fn list_sessions(
 ) -> Response {
     if let Err(r) = gate(&st, &eid, &h, Kind::Read, true) {
         return r;
+    }
+    if lock(&st.scenario).empty_catalog {
+        return Json(ListSessionsResponse { items: vec![], total_count: 0.0, next_token: None }).into_response();
     }
     // Variable page sizes: the size is derived from the offset so a token fully determines the next page.
     let offset = match q.get("nextToken") {

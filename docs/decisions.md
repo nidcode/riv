@@ -71,3 +71,6 @@ Personal-time blocks take `want: present|none` (default present). `none` deletes
 
 ## D8-1 Generated search-quality questions
 `--generate N` samples N sessions evenly (sorted by id) that have an abstract and a service; the query is 4 abstract words not in the title plus the first service; expected = that session. It is deliberately labeled synthetic: it shows what indexing abstracts adds (real catalog, 30 questions: recall@10 0.333 without abstracts, 1.000 with), not how real attendees search, and it favors the abstract index by construction. Generated queries are not stored in the repo because they derive from catalog text.
+
+## D8-2 Sync never wipes the catalog on an empty answer
+On 2026-10-08 the real ListSessions returned 200 with `items: []`, `totalCount: 0` for reinvent2026 (service side; GetSchedule still worked). `sync` read that as "the catalog is empty" and deleted all 2,195 stored sessions. Now an empty result when sessions are already stored aborts the sync (the transaction is rolled back) with an explanatory error. A first sync into an empty database is still allowed. Mock scenario `empty-catalog` reproduces it.

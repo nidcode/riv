@@ -168,6 +168,14 @@ pub async fn sync(api: &dyn EventsApi, db: &Db, opts: &SyncOptions, progress: &d
                 )),
             }
         }
+        // An empty answer for an event that had sessions is not "the catalog is empty": refuse to wipe the local copy.
+        if fin.is_empty() && !before.is_empty() {
+            return Err(RivError::general(format!(
+                "the API returned 0 sessions for `{eid}` but {} are stored locally; the local catalog was kept. \
+                 This is usually temporary (service or sign-in/registration problem): check `riv doctor` and try again later",
+                before.len()
+            )));
+        }
         let keep: HashSet<String> = fin.keys().cloned().collect();
         report.removed = db.delete_sessions_except(eid, &keep)?;
         Ok(())
