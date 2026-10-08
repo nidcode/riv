@@ -80,6 +80,18 @@ re:Invent 2026 は登録制です。カタログの読み取りにはサイン�
 
 riv が**行わない**こと: 空席のポーリング / 自動予約、承認された plan なしでの apply、riv が作成していない予約への操作（それらは `unmanaged` と表示されます。spec の行を削除しても何もキャンセルされません。キャンセルするには `want: none` と書きます）。詳細: [docs/rules-compliance.ja.md](docs/rules-compliance.ja.md)、[docs/architecture.ja.md](docs/architecture.ja.md)。
 
+## アカウントの切り替え
+
+**ブラウザ**が Builder ID にサインインしたままだと、選んでいないアカウントで自動的にログインされることがあります（認可エンドポイントは `prompt=login` を無視します）。そのため、`riv logout` はブラウザ側のセッションも終了し、`riv login` は**どのアカウントでサインインしたか**（例: `al***@example.com`）を表示して、保存する前に「このアカウントを使いますか？ [Y/n]」と確認します。`n` と答えると、ブラウザをサインアウトして選び直せます。
+
+```sh
+riv logout                # トークンを失効・削除し、ブラウザ側のセッションも終了（ブラウザが開きます）
+riv login                 # サインイン。表示されたアカウントを確認し、違えば n で選び直し
+# 1 回で済ませる場合:
+riv login --switch-account
+```
+`riv logout --local` はトークンの削除だけを行います（ブラウザが使えない環境向け）。`riv login --yes` は確認を省きます。ブラウザ側は https://profile.aws.amazon.com でもサインアウトできます。
+
 ## コマンド
 
 `riv show <id> --live` は、前回の同期ではなく API（GetSession）に今の席の状況を問い合わせます。spec の個人時間ブロックは、作成・更新に加え、`want: none` で削除もできます。

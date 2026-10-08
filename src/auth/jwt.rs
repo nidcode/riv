@@ -13,11 +13,11 @@ pub fn claim_str(jwt: &str, key: &str) -> Option<String> {
     claims(jwt)?.get(key)?.as_str().map(str::to_string)
 }
 
-/// `alice@example.com` -> `a***@example.com`
+/// `alice@example.com` -> `al***@example.com` (two characters, so two accounts on one domain can be told apart)
 pub fn mask_email(email: &str) -> String {
     match email.split_once('@') {
         Some((local, domain)) => {
-            let first: String = local.chars().take(1).collect();
+            let first: String = local.chars().take(2).collect();
             format!("{first}***@{domain}")
         }
         None => "***".into(),
@@ -30,7 +30,7 @@ mod tests {
 
     #[test]
     fn masks() {
-        assert_eq!(mask_email("alice@example.com"), "a***@example.com");
+        assert_eq!(mask_email("alice@example.com"), "al***@example.com");
     }
 
     #[test]

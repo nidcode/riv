@@ -27,9 +27,20 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 pub enum Command {
     /// Sign in with your Builder ID (OAuth 2.0 + PKCE).
-    Login,
+    Login {
+        /// Sign out of the browser sessions first, so you can pick a different Builder ID account.
+        #[arg(long)]
+        switch_account: bool,
+        /// Do not ask whether the signed-in account is the right one.
+        #[arg(long)]
+        yes: bool,
+    },
     /// Revoke tokens and delete local credentials.
-    Logout,
+    Logout {
+        /// Only revoke and delete the tokens; leave the browser's Builder ID session alone (use when no browser is available).
+        #[arg(long)]
+        local: bool,
+    },
     /// Show the signed-in account (email masked).
     Whoami,
     /// List events (no sign-in needed).
@@ -215,8 +226,8 @@ pub enum ConfigAction {
 
 pub async fn run(cli: Cli) -> Result<i32> {
     match cli.command {
-        Command::Login => auth_cmds::login().await,
-        Command::Logout => auth_cmds::logout().await,
+        Command::Login { switch_account, yes } => auth_cmds::login(switch_account, yes).await,
+        Command::Logout { local } => auth_cmds::logout(local).await,
         Command::Whoami => auth_cmds::whoami(),
         Command::Events { json, past } => catalog_cmds::events(json, past).await,
         Command::Sync { event, locale, abstracts } => catalog_cmds::sync(&event, locale, &abstracts).await,

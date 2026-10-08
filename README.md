@@ -78,6 +78,18 @@ This repository root *is* the Power (`plugin.json`, `mcp.json`, `skills/`, `dev.
 
 What riv will **not** do: poll for seats / auto-reserve, apply without an approved plan, or touch reservations it did not create (they show as `unmanaged`; deleting a spec row never cancels anything — write `want: none`). Details: [docs/rules-compliance.md](docs/rules-compliance.md), [docs/architecture.md](docs/architecture.md).
 
+## Switching accounts
+
+Your **browser** can stay signed in to Builder ID and sign you straight back in as an account you did not pick (the authorization endpoint ignores `prompt=login`). So `riv logout` also ends the browser sessions, and `riv login` shows **which account** you got (e.g. `al***@example.com`) and asks `Use this account? [Y/n]` before saving anything; answer `n` and it signs the browser out and lets you choose again. To switch accounts:
+
+```sh
+riv logout                # revokes the tokens AND ends the browser sessions (opens your browser)
+riv login                 # sign in; check the account shown, answer n to pick another
+# or in one step:
+riv login --switch-account
+```
+`riv logout --local` only deletes the tokens (for machines without a browser); `riv login --yes` skips the question. If the redirect chain cannot run, sign out of the browser at https://profile.aws.amazon.com instead.
+
 ## Commands
 
 `riv show <id> --live` asks the API (GetSession) for the current seat availability instead of the last sync. Personal-time blocks in the spec can be created, updated and, with `want: none`, deleted.
