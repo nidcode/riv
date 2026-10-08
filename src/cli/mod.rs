@@ -83,6 +83,9 @@ pub enum Command {
         event: String,
         #[arg(long)]
         json: bool,
+        /// Ask the API now (GetSession) for the current seat availability instead of the last sync.
+        #[arg(long)]
+        live: bool,
     },
     /// Create requirements.md / design.md / tasks.md for this agenda (3 questions).
     Init {
@@ -230,7 +233,7 @@ pub async fn run(cli: Cli) -> Result<i32> {
             })
             .await
         }
-        Command::Show { id, event, json } => catalog_cmds::show(&event, &id, json),
+        Command::Show { id, event, json, live } => catalog_cmds::show(&event, &id, json, live).await,
         Command::Init { dir, goal, interests, constraints, event } => {
             plan_cmds::init(dir, goal, interests, constraints, &event)
         }

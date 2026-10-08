@@ -1,7 +1,7 @@
 //! The diff itself (pure; no I/O). Semantics are fixed by tests/plan_semantics.rs and brief §7.
 
 use super::*;
-use crate::desired::{Desired, DesiredBlock, Want, desired_hash, validate};
+use crate::desired::{BlockWant, Desired, DesiredBlock, Want, desired_hash, validate};
 use crate::error::{Result, RivError};
 use chrono::{DateTime, Utc};
 use std::collections::{HashMap, HashSet};
@@ -225,8 +225,30 @@ fn same_block(b: &DesiredBlock, pt: &crate::api::PersonalTime, range: &(String, 
 
 fn plan_blocks(i: &PlanInput<'_>) -> (Vec<Action>, Vec<String>) {
     let mut out = Vec::new();
+    let mut deletes = Vec::new();
     let mut warnings = Vec::new();
     for b in &i.desired.blocks {
+        if b.want == BlockWant::None {
+            // Only a block riv created (its id is remembered) is removed; anything else is left alone.
+            let id = i.block_ids.get(&b.key);
+            match id.and_then(|id| i.schedule.personal_time.iter().find(|p| &p.personal_time_id == id)) {
+                Some(pt) => deletes.push(Action {
+                    kind: ActionKind::BlockDelete,
+                    key: Some(b.key.clone()),
+                    title: Some(pt.title.clone()),
+                    start_utc: Some(pt.start_date_time.clone()),
+                    end_utc: Some(pt.end_date_time.clone()),
+                    personal_time_id: Some(pt.personal_time_id.clone()),
+                    reason: Some("want: none".into()),
+                    ..Default::default()
+                }),
+                None if id.is_none() => {
+                    warnings.push(format!("block `{}`: want: none, but riv did not create it; left untouched", b.key))
+                }
+                None => {}
+            }
+            continue;
+        }
         let Some(range) = b.utc_range(i.catalog.tz()) else { continue };
         let existing =
             i.block_ids.get(&b.key).and_then(|id| i.schedule.personal_time.iter().find(|p| &p.personal_time_id == id));
@@ -264,7 +286,8 @@ fn plan_blocks(i: &PlanInput<'_>) -> (Vec<Action>, Vec<String>) {
             }
         }
     }
-    (out, warnings)
+    deletes.extend(out);
+    (deletes, warnings)
 }
 
 /// Client-side clash hints for newly reserved sessions (the server stays the judge).

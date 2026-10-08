@@ -107,6 +107,8 @@ async fn search_status_session_and_phone_format() {
     assert!(out.lines().count() <= 27, "limit is capped at 25 rows + header");
     let (err, out) = call(&f, "riv_session", serde_json::json!({"id": "mock-0001"})).await;
     assert!(!err && out.contains("mock-0001"));
+    let (err, out) = call(&f, "riv_session", serde_json::json!({"id": "mock-0001", "live": true})).await;
+    assert!(!err && out.contains("seats:"), "{out}");
     let (err, _) = call(&f, "riv_session", serde_json::json!({"id": "nope"})).await;
     assert!(err);
 }

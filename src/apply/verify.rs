@@ -60,6 +60,18 @@ pub fn verify(d: &Desired, s: &Schedule, block_ids: &HashMap<String, String>, tz
         });
     }
     for b in &d.blocks {
+        if b.want == crate::desired::BlockWant::None {
+            // Only a block riv created (remembered id) counts; a look-alike made by hand is not ours.
+            let still_there =
+                block_ids.get(&b.key).is_some_and(|id| s.personal_time.iter().any(|p| &p.personal_time_id == id));
+            rep.items.push(VerifyItem {
+                target: format!("block:{}", b.key),
+                expected: "absent".into(),
+                observed: if still_there { "present" } else { "absent" }.into(),
+                ok: !still_there,
+            });
+            continue;
+        }
         let range = b.utc_range(tz);
         let present = range.is_some_and(|(st, en)| {
             s.personal_time.iter().any(|p| {

@@ -423,3 +423,28 @@ async fn blocks_are_created_once_and_their_ids_remembered() {
     assert_eq!(e.db.block_ids(EVENT).expect("ids").get("dinner"), Some(&sched.personal_time[0].personal_time_id));
     assert!(plan(&e).await.actions.is_empty(), "no duplicate on the next plan");
 }
+
+#[tokio::test]
+async fn blocks_can_be_removed_with_want_none_and_only_ours() {
+    let e = env("").await;
+    let block = |want: &str| {
+        format!(
+            "  - {{key: dinner, want: {want}, title: Dinner, description: Community, start: \"2026-12-01T19:00\", end: \"2026-12-01T21:00\"}}"
+        )
+    };
+    std::fs::write(&e.spec, spec_text(&[], &block("present"))).expect("spec");
+    let p = plan(&e).await;
+    run_apply(&e, &p, false).await.expect("create");
+    assert_eq!(e.api.get_schedule(EVENT).await.expect("s").personal_time.len(), 1);
+    // remove it
+    std::fs::write(&e.spec, spec_text(&[], &block("none"))).expect("spec");
+    let p = plan(&e).await;
+    assert_eq!(p.actions.len(), 1);
+    let r = run_apply(&e, &p, false).await.expect("delete");
+    assert!(r.is_clean(), "{:?}", r.outcomes);
+    assert!(r.verify.all_ok());
+    assert!(e.api.get_schedule(EVENT).await.expect("s").personal_time.is_empty());
+    assert!(e.db.block_ids(EVENT).expect("ids").is_empty(), "mapping is forgotten");
+    assert!(plan(&e).await.actions.is_empty(), "idempotent");
+    assert_eq!(writes(&e), vec!["pt.create Dinner".to_string(), "pt.delete pt-1".to_string()]);
+}

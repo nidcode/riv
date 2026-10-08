@@ -3,6 +3,7 @@
 ## 0.1.0 — unreleased
 - Local catalog sync (full walk, FTS5 search), `riv search/show/sync`.
 - Desired state in `design.md`, `riv plan`, safe `riv apply` (unknown-outcome reconcile via `--resume`, replace with seat-loss flag, journal, `tasks.md`), `riv verify/schedule`.
+- `blocks[].want: none` deletes personal time riv created (DeletePersonalTime); `riv show --live` / `riv_session live` use GetSession for current seat availability.
 - Local MCP server (`riv mcp`) and Kiro Power files (skills, steering, hook examples); Kiro Crew guide.
 - `riv today` (phone/ide), `riv prep`, en/ja wording.
 - Mock Events API (`riv mock`) with failure scenarios; `riv bench`.

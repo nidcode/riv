@@ -65,3 +65,6 @@ Prompts and templates follow `RIV_LANG` (default: OS locale, so a Japanese `LANG
 
 ## D6-4 Saved settings
 `~/.config/riv/config.json` (`riv config set|get|unset|show`), currently only `lang`. Resolution: `RIV_LANG` > config > `LC_ALL`/`LANG` > English (pure function `i18n::resolve_lang`, tested). A missing or corrupt config file silently yields defaults so it can never block the CLI.
+
+## D7-1 Block delete and live show
+Personal-time blocks take `want: present|none` (default present). `none` deletes only a block whose id riv remembered (`block_ids`); a look-alike made by hand is warned about and kept, matching the session rule. Removing the YAML row still never deletes. After a delete the id mapping is forgotten. `riv show --live` and `riv_session live:true` call GetSession (120/min) for current seat availability; the local catalog is not rewritten by it.

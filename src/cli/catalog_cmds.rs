@@ -122,12 +122,20 @@ pub async fn search(a: SearchArgs) -> Result<i32> {
     Ok(0)
 }
 
-pub fn show(event: &str, id: &str, json: bool) -> Result<i32> {
+pub async fn show(event: &str, id: &str, json: bool, live: bool) -> Result<i32> {
     let db = open_db()?;
     let tz = db.event_tz(event);
     let found = db.find_sessions(event, id)?;
     if found.is_empty() {
         return Err(RivError::general(format!("no session `{id}` in the local catalog (run `riv sync`)")));
+    }
+    // --live: GetSession for fresh seat availability (the catalog changes after a sync).
+    let mut found = found;
+    if live {
+        let api = make_api();
+        for f in &mut found {
+            f.session = api.get_session(event, &f.session.session_id, None).await?;
+        }
     }
     for f in found {
         let s = &f.session;

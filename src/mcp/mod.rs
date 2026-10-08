@@ -57,6 +57,8 @@ pub struct SearchArgs {
 pub struct SessionArgs {
     /// sessionId or short code.
     pub id: String,
+    /// Ask the API now for current seat availability (GetSession) instead of the last sync.
+    pub live: Option<bool>,
     pub format: Option<String>,
 }
 
@@ -131,7 +133,7 @@ impl RivServer {
 
     #[tool(name = "riv_session", description = "One session's details by sessionId or short code.")]
     async fn riv_session(&self, Parameters(a): Parameters<SessionArgs>) -> CallToolResult {
-        text(self.tools.session(&a.id, None, fmt(&a.format)).await)
+        text(self.tools.session(&a.id, None, fmt(&a.format), a.live.unwrap_or(false)).await)
     }
 
     #[tool(
