@@ -33,6 +33,8 @@ pub enum ActionKind {
     BlockCreate,
     #[serde(rename = "block.update")]
     BlockUpdate,
+    #[serde(rename = "block.delete")]
+    BlockDelete,
 }
 
 impl ActionKind {
@@ -44,6 +46,7 @@ impl ActionKind {
             ActionKind::Unfavorite => "unfavorite",
             ActionKind::BlockCreate => "block.create",
             ActionKind::BlockUpdate => "block.update",
+            ActionKind::BlockDelete => "block.delete",
         }
     }
 }

@@ -282,3 +282,33 @@ fn plan_roundtrips_through_json() {
     assert!(load_plan("../etc", dir.path()).is_err());
     assert!(load_plan("MISSING", dir.path()).is_err());
 }
+
+#[test]
+fn block_want_none_deletes_only_blocks_riv_created() {
+    let gone = "  - {key: dinner, want: none, title: Dinner, description: D, start: \"2026-12-01T19:00\", end: \"2026-12-01T21:00\"}";
+    let pt = PersonalTime {
+        personal_time_id: "pt1".into(),
+        start_date_time: "2026-12-02T03:00:00".into(),
+        end_date_time: "2026-12-02T05:00:00".into(),
+        title: "Dinner".into(),
+        description: "D".into(),
+        location: None,
+    };
+    // riv created it (id remembered): delete
+    let p = run(
+        &spec("  []", gone),
+        &World { personal: vec![pt.clone()], block_ids: vec![("dinner", "pt1")], ..Default::default() },
+    )
+    .expect("plan");
+    assert_eq!(kinds(&p), kv(&[("block.delete", "dinner")]));
+    assert_eq!(p.actions[0].personal_time_id.as_deref(), Some("pt1"));
+    assert!(render_plan(&p, &catalog()).contains("- block.delete"));
+    // an identical entry made by hand is not ours: warn, keep
+    let p = run(&spec("  []", gone), &World { personal: vec![pt], ..Default::default() }).expect("plan");
+    assert!(p.actions.is_empty());
+    assert!(p.warnings.iter().any(|w| w.contains("did not create")), "{:?}", p.warnings);
+    // already gone: nothing to do
+    let p =
+        run(&spec("  []", gone), &World { block_ids: vec![("dinner", "pt1")], ..Default::default() }).expect("plan");
+    assert!(p.actions.is_empty());
+}

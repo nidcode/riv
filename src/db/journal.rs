@@ -70,6 +70,11 @@ impl Db {
         Ok(())
     }
 
+    pub fn remove_block_id(&self, event: &str, key: &str) -> Result<()> {
+        self.conn.execute("DELETE FROM block_ids WHERE event=?1 AND key=?2", params![event, key])?;
+        Ok(())
+    }
+
     pub fn start_run(&self, run_id: &str, plan_id: &str, account: &str) -> Result<()> {
         self.conn.execute(
             "INSERT INTO runs(run_id,plan_id,started_at,account) VALUES (?1,?2,?3,?4)",

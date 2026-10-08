@@ -18,6 +18,7 @@ pub(super) fn op_of(kind: ActionKind) -> Op {
         ActionKind::Unfavorite => Op::DisassociateFavorite,
         ActionKind::BlockCreate => Op::CreatePersonalTime,
         ActionKind::BlockUpdate => Op::UpdatePersonalTime,
+        ActionKind::BlockDelete => Op::DeletePersonalTime,
     }
 }
 
@@ -291,12 +292,17 @@ impl<'a> Exec<'a> {
                     .update_personal_time(self.event, a.personal_time_id.as_deref().unwrap_or_default(), &input())
                     .await
             }
+            ActionKind::BlockDelete => {
+                self.api.delete_personal_time(self.event, a.personal_time_id.as_deref().unwrap_or_default()).await
+            }
             ActionKind::Reserve | ActionKind::Favorite => unreachable!("bulk kinds are handled by `bulk`"),
         };
         match res {
             Ok(()) => self.set(i, ActionStatus::Done, None),
             // Removals: 404 means it is already gone, which is the intended end state.
-            Err(ApiError::NotFound) if matches!(a.kind, ActionKind::Cancel | ActionKind::Unfavorite) => {
+            Err(ApiError::NotFound)
+                if matches!(a.kind, ActionKind::Cancel | ActionKind::Unfavorite | ActionKind::BlockDelete) =>
+            {
                 self.set(i, ActionStatus::Already, Some("already gone (404)".into()))
             }
             Err(e) => self.apply_error(&[i], a.kind, e),
