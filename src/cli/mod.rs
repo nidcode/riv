@@ -34,9 +34,9 @@ pub enum Command {
     },
     /// Revoke tokens and delete local credentials.
     Logout {
-        /// Also end the Builder ID and sign-in browser sessions (opens the browser).
+        /// Only revoke and delete the tokens; leave the browser's Builder ID session alone (use when no browser is available).
         #[arg(long)]
-        browser: bool,
+        local: bool,
     },
     /// Show the signed-in account (email masked).
     Whoami,
@@ -224,7 +224,7 @@ pub enum ConfigAction {
 pub async fn run(cli: Cli) -> Result<i32> {
     match cli.command {
         Command::Login { switch_account } => auth_cmds::login(switch_account).await,
-        Command::Logout { browser } => auth_cmds::logout(browser).await,
+        Command::Logout { local } => auth_cmds::logout(local).await,
         Command::Whoami => auth_cmds::whoami(),
         Command::Events { json, past } => catalog_cmds::events(json, past).await,
         Command::Sync { event, locale, abstracts } => catalog_cmds::sync(&event, locale, &abstracts).await,

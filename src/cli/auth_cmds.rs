@@ -27,7 +27,7 @@ pub async fn login(switch_account: bool) -> Result<i32> {
     Ok(0)
 }
 
-pub async fn logout(browser: bool) -> Result<i32> {
+pub async fn logout(local_only: bool) -> Result<i32> {
     let store = FileTokenStore::default_location();
     if let Some(c) = store.load()?
         && let Some(rt) = c.refresh_token
@@ -37,15 +37,20 @@ pub async fn logout(browser: bool) -> Result<i32> {
     }
     store.clear()?;
     println!("{}", t("Signed out."));
-    if browser {
-        browser_sign_out().await?;
-    } else {
-        // Without this the browser may sign you straight back in as the same account.
+    if local_only {
+        // Without the browser step the browser may sign you straight back in as the same account.
         println!(
             "{}",
             t(
-                "Your browser may still be signed in to Builder ID. To switch accounts run `riv logout --browser` or `riv login --switch-account`."
+                "Your browser may still be signed in to Builder ID. To switch accounts run `riv logout` (without --local) or `riv login --switch-account`."
             )
+        );
+    } else if let Err(e) = browser_sign_out().await {
+        // The tokens are already gone; a browser that cannot be reached is a warning, not a failure.
+        eprintln!("warning: {e}");
+        println!(
+            "{}",
+            t("Could not end the browser sessions. Open https://profile.aws.amazon.com and sign out there.")
         );
     }
     Ok(0)
