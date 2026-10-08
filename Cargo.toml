@@ -1,6 +1,6 @@
 [package]
 name = "riv-reinvent"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 description = "re:Invent as Code: declare your agenda in a Kiro spec, plan the diff, apply it safely"
 license = "Apache-2.0"
