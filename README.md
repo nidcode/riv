@@ -11,18 +11,31 @@ Demo of a replacement and the seat-loss guard: [docs/demo.md](docs/demo.md)
 
 ## Install
 
-Pick one:
+**Fastest: a prebuilt binary (no Rust needed, takes seconds).**
 
 ```sh
-# 1. shell installer (macOS / Linux)
+# macOS / Linux
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.sh | sh
-# Windows: powershell -c "irm https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.ps1 | iex"
+# Windows (PowerShell)
+powershell -c "irm https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.ps1 | iex"
+```
 
-# 2. npx (no install; this is what the Kiro Power uses)
+Or run it without installing (needs Node; this is what the Kiro Power uses):
+
+```sh
 npx -y riv-reinvent --help
 ```
 
-From source (developers): `cargo install --path .` (needs Rust stable, edition 2024).
+Binaries for every platform are also on the [Releases page](https://github.com/nidcode/riv/releases).
+
+Build from source (developers; compiles for 2-3 minutes and needs Rust 1.85 or newer):
+
+```sh
+git clone https://github.com/nidcode/riv && cd riv && cargo install --path .
+```
+`cargo install riv-reinvent` does not work: the crate is not published on crates.io.
+
+Requirements: none for the binary. A registered AWS Builder ID is needed for the real API (not for the mock quick start below).
 
 ## 30-second quick start (no sign-in, synthetic data)
 
