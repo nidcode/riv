@@ -13,18 +13,31 @@ re:Invent 2026 に登録している AWS Heroes / Community Builders、特に Ki
 
 ## インストール
 
-いずれか 1 つを選んでください。
+**いちばん速い方法: ビルド済みのバイナリ（Rust は不要で、数秒で終わります）**
 
 ```sh
-# 1. shell installer (macOS / Linux)
+# macOS / Linux
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.sh | sh
-# Windows: powershell -c "irm https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.ps1 | iex"
+# Windows（PowerShell）
+powershell -c "irm https://github.com/nidcode/riv/releases/latest/download/riv-reinvent-installer.ps1 | iex"
+```
 
-# 2. npx (no install; this is what the Kiro Power uses)
+インストールせずに実行することもできます（Node が必要です。Kiro の Power はこの方法を使います）。
+
+```sh
 npx -y riv-reinvent --help
 ```
 
-ソースから（開発者向け）: `cargo install --path .`（Rust stable、edition 2024 が必要です）。
+各プラットフォーム用のバイナリは [Releases ページ](https://github.com/nidcode/riv/releases)にもあります。
+
+ソースからビルドする場合（開発者向け。コンパイルに 2〜3 分かかり、Rust 1.85 以上が必要です）:
+
+```sh
+git clone https://github.com/nidcode/riv && cd riv && cargo install --path .
+```
+`cargo install riv-reinvent` は使えません。crates.io には公開していないためです。
+
+必要なもの: バイナリ自体には何も要りません。本物の API を使うには、登録済みの AWS Builder ID が必要です（下の模擬サーバーのクイックスタートでは不要です）。
 
 ## 30 秒クイックスタート（サインイン不要、合成データ）
 
