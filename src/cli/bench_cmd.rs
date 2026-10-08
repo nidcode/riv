@@ -9,10 +9,13 @@ pub async fn run(
     mock: bool,
     runs: usize,
     fixture: Option<PathBuf>,
+    generate: Option<usize>,
     out: PathBuf,
 ) -> Result<i32> {
     let env = if mock {
-        BenchEnv::mock(runs, fixture).await?
+        let mut e = BenchEnv::mock(runs, fixture).await?;
+        e.generate = generate;
+        e
     } else {
         BenchEnv {
             api_base: api_base(),
@@ -21,6 +24,7 @@ pub async fn run(
             mock: false,
             runs,
             fixture,
+            generate,
             _mock_server: None,
         }
     };

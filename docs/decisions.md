@@ -68,3 +68,6 @@ Prompts and templates follow `RIV_LANG` (default: OS locale, so a Japanese `LANG
 
 ## D7-1 Block delete and live show
 Personal-time blocks take `want: present|none` (default present). `none` deletes only a block whose id riv remembered (`block_ids`); a look-alike made by hand is warned about and kept, matching the session rule. Removing the YAML row still never deletes. After a delete the id mapping is forgotten. `riv show --live` and `riv_session live:true` call GetSession (120/min) for current seat availability; the local catalog is not rewritten by it.
+
+## D8-1 Generated search-quality questions
+`--generate N` samples N sessions evenly (sorted by id) that have an abstract and a service; the query is 4 abstract words not in the title plus the first service; expected = that session. It is deliberately labeled synthetic: it shows what indexing abstracts adds (real catalog, 30 questions: recall@10 0.333 without abstracts, 1.000 with), not how real attendees search, and it favors the abstract index by construction. Generated queries are not stored in the repo because they derive from catalog text.
