@@ -6,6 +6,8 @@ members = ["cargo:."]
 # npm package name: `riv` is taken on npm and crates.io (see docs/decisions.md)
 npm-package = "riv-reinvent"
 publish-jobs = ["npm"]
+# release.yml is edited by hand for npm Trusted Publishing (id-token, Node 24, no NPM_TOKEN); keep dist from regenerating it.
+allow-dirty = ["ci"]
 # The preferred dist version to use in CI (Cargo.toml SemVer syntax)
 cargo-dist-version = "0.33.0"
 # CI backends to support

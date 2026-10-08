@@ -283,6 +283,12 @@ jobs:
       - plan
       - host
     runs-on: "ubuntu-22.04"
+    # Trusted Publishing (OIDC): npm trusts this workflow, so no NPM_TOKEN is needed.
+    # Configure it once on npmjs.com: package riv-reinvent > Settings > Trusted publisher > GitHub Actions
+    # (user/org nidcode, repository riv, workflow release.yml).
+    permissions:
+      id-token: write
+      contents: read
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PLAN: ${{ needs.plan.outputs.val }}
@@ -296,15 +302,14 @@ jobs:
           merge-multiple: true
       - uses: actions/setup-node@v6
         with:
-          node-version: '20.x'
+          # Trusted Publishing needs npm >= 11.5.1 (bundled with Node 24).
+          node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
       - run: |
           for release in $(echo "$PLAN" | jq --compact-output '.releases[] | select([.artifacts[] | endswith("-npm-package.tar.gz")] | any)'); do
             pkg=$(echo "$release" | jq '.artifacts[] | select(endswith("-npm-package.tar.gz"))' --raw-output)
             npm publish --access public "./npm/${pkg}"
           done
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   announce:
     needs:
